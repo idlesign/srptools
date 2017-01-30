@@ -16,7 +16,7 @@ https://github.com/idlesign/srptools
 .. |ci| image:: https://img.shields.io/travis/idlesign/srptools/master.svg
     :target: https://travis-ci.org/idlesign/srptools
 
-.. |coverage| image:: https://img.shields.io/coveralls/idlesignsrptools/master.svg
+.. |coverage| image:: https://img.shields.io/coveralls/idlesign/srptools/master.svg
     :target: https://coveralls.io/r/idlesign/srptools
 
 .. |health| image:: https://landscape.io/github/idlesign/srptools/master/landscape.svg?style=flat
@@ -54,7 +54,7 @@ Links
     https://tools.ietf.org/html/rfc2945
 
 * rfc5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication
-    https://tools.ietf.org/html/
+    https://tools.ietf.org/html/rfc5054
 
 
 Documentation
