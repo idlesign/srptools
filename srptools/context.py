@@ -3,7 +3,7 @@ from base64 import b64encode
 
 from six import integer_types
 
-from .utils import int_from_hex, int_to_bytes, hex_from
+from .utils import int_from_hex, int_to_bytes, hex_from, value_encode
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
 from .exceptions import SRPException
 
@@ -229,11 +229,7 @@ class SRPContext(object):
         salt = self.generate_salt()
         verifier = self.get_common_password_verifier(self.get_common_password_hash(salt))
 
-        if base64:
-            verifier = b64encode(int_to_bytes(verifier))
-            salt = b64encode(int_to_bytes(salt))
-        else:
-            verifier = hex_from(verifier)
-            salt = hex_from(salt)
+        verifier = value_encode(verifier, base64)
+        salt = value_encode(salt, base64)
 
         return self._user, verifier, salt

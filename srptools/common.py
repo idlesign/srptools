@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64
+from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64, value_encode
 from .exceptions import SRPClientException
 
 
@@ -75,11 +75,6 @@ class SRPSessionBase(object):
         """Decodes value into hex optionally from base64"""
         return hex_from_b64(value) if base64 else value
 
-    @classmethod
-    def _value_encode(cls, value, base64=False):
-        """Encodes int into hex or base64."""
-        return b64encode(int_to_bytes(value)) if base64 else hex_from(value)
-
     def process(self, other_public, salt, base64=False):
         salt = self._value_decode(salt, base64)
         other_public = self._value_decode(other_public, base64)
@@ -89,9 +84,9 @@ class SRPSessionBase(object):
         self.init_session_key()
         self.init_session_key_proof()
 
-        key = self._value_encode(self._key, base64)
-        key_proof = self._value_encode(self._key_proof, base64)
-        key_proof_hash = self._value_encode(self._key_proof_hash, base64)
+        key = value_encode(self._key, base64)
+        key_proof = value_encode(self._key_proof, base64)
+        key_proof_hash = value_encode(self._key_proof_hash, base64)
 
         return key, key_proof, key_proof_hash
 

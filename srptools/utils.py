@@ -4,6 +4,11 @@ from base64 import b64encode, b64decode
 from six import string_types
 
 
+def value_encode(val, base64=False):
+    """Encodes int into hex or base64."""
+    return int_to_b64(val) if base64 else hex_from(val)
+
+
 def hex_from_b64(val):
     """Returns hex string representation for base64 encoded value.
 

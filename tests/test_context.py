@@ -19,6 +19,9 @@ def test_context():
         multiplier='7556AA045AEF2CDD07ABAF0F665C3E818913186F',
     )
 
+    assert context.prime_b64
+    assert context.generator_b64
+
     password_hash = context.get_common_password_hash(static_salt)
     assert to_hex_u(password_hash) == '94B7555AABE9127CC58CCF4993DB6CF84D16C124'
 
