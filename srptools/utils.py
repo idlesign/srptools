@@ -1,10 +1,19 @@
 from binascii import unhexlify
-from base64 import b64encode
+from base64 import b64encode, b64decode
 
 from six import string_types
 
 
-def get_hexstr(val):
+def hex_from_b64(val):
+    """Returns hex string representation for base64 encoded value.
+
+    :param str val:
+    :rtype: bytes|str
+    """
+    return hex_from(b64decode(val))
+
+
+def hex_from(val):
     """Returns hex string representation for a given value.
 
     :param bytes|str|unicode|int|long val:
@@ -16,7 +25,7 @@ def get_hexstr(val):
     return '%x' % val
 
 
-def int_from_hexstr(hexstr):
+def int_from_hex(hexstr):
     """Returns int/long representation for a given hex string.
 
     :param bytes|str hexstr:

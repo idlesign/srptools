@@ -29,23 +29,90 @@ Description
 *Tools to implement Secure Remote Password (SRP) authentication*
 
 
-Server perspective:
+Preliminary step:
 
 .. code-block:: python
 
-    from srptools import SRPContext, SRPServerSession
+    from srptools import SRPContext
 
-    ... todo
+    # Agree on communication details.
+    context = SRPContext('alice', 'password123')
+    username, password_verifier, salt = context.get_user_data_triplet()
+    prime = context.prime
+    gen = context.generator
 
 
-Client perspective:
+Simplified workflow:
 
 .. code-block:: python
 
-    from srptools import SRPContext, SRPClientSession
+    from srptools import SRPContext, SRPServerSession, SRPClientSession
 
-    ... todo
+    # Receive username from client and generate server public.
+    server_session = SRPServerSession(SRPContext(username, prime=prime, generator=gen), password_verifier)
+    server_public = server_session.public
 
+    # Receive server public and salt and process them.
+    client_session = SRPClientSession(SRPContext('alice', 'password123', prime=prime, generator=gen))
+    client_session.process(server_public, salt)
+    # Generate client public and session key.
+    client_public = client_session.public
+    client_session_key = client_session.key
+
+    # Process client public and compare session keys.
+    server_session.process(client_public, salt)
+    server_session_key = server_session.key
+
+    assert server_session_key == client_session_key
+
+
+Extended workflow
+
+.. code-block:: python
+
+    from srptools import SRPContext, SRPServerSession, SRPClientSession
+
+    # Receive username from client and generate server public.
+    server_session = SRPServerSession(SRPContext(username, prime=prime, generator=gen), password_verifier)
+    server_public = server_session.public
+
+    # Receive server public and salt and process them.
+    client_session = SRPClientSession(SRPContext('alice', 'password123', prime=prime, generator=gen))
+    client_session.process(server_public, salt)
+    # Generate client public and session key proof.
+    client_public = client_session.public
+    client_session_key_proof = client_session.key_proof
+
+    # Process client public and verify session key proof.
+    server_session.process(client_public, salt)
+    assert server_session.verify_proof(client_session_key_proof)
+    # Generate session key proof hash.
+    server_session_key_proof_hash = client_session.key_proof_hash
+
+    # Verify session key proff hash received from server.
+    assert client_session.verify_proof(server_session_key_proof_hash)
+
+
+
+Hints
+-----
+
+* ``SRPContext`` is rather flexible, so you can implement some custom server/client session logic with its help.
+* ``srptools.constants`` contains basic constants which can be used with ``SRPContext`` for server and client to agree
+  upon communication details.
+* Basic values are represented as hex strings but base64 encoded values are also available:
+
+    .. code-block:: python
+
+        [...]
+
+        server_public = server_session.public_b64
+
+        # Receive server public and salt and process them.
+        client_session = SRPClientSession(SRPContext('alice', 'password123', prime=prime, generator=gen))
+        client_session.process(server_public, salt, base64=True)
+
+        [...]
 
 
 Links
@@ -55,9 +122,3 @@ Links
 
 * rfc5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication
     https://tools.ietf.org/html/rfc5054
-
-
-Documentation
--------------
-
-http://srptools.readthedocs.org/

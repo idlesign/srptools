@@ -1,13 +1,11 @@
 from random import SystemRandom as random
+from base64 import b64encode
 
 from six import integer_types
 
-from .utils import int_from_hexstr, int_to_bytes
+from .utils import int_from_hex, int_to_bytes, hex_from
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
-
-
-# todo .get_client_session_key_hash()
-# todo .get_server_session_key_hash()
+from .exceptions import SRPException
 
 
 class SRPContext(object):
@@ -21,27 +19,54 @@ class SRPContext(object):
 
     """
     def __init__(
-            self, username, password, prime=None, generator=None, hash_func=None, multiplier=None,
+            self, username, password=None, prime=None, generator=None, hash_func=None, multiplier=None,
             bits_random=1024, bits_salt=64):
+        """
 
-        self.hash_func = hash_func or HASH_SHA_1
-        self.username = username  # I
-        self.password = password  # p
+        :param str|unicode username: User name
+        :param str|unicode password: User _password
+        :param str|unicode prime: Prime hex string . Default: PRIME_1024
+        :param str|unicode generator: Generator hex string. Default: PRIME_1024_GEN
+        :param str|unicode hash_func: Function to calculate hash. Default: HASH_SHA_1
+        :param str|unicode multiplier: Multiplier hex string. If not given will be calculated
+            automatically using _prime and _gen.
+        :param int bits_random: Random value bits. Default: 1024
+        :param int bits_salt: Salt value bits. Default: 64
+        """
+        self._hash_func = hash_func or HASH_SHA_1  # H
+        self._user = username  # I
+        self._password = password  # p
 
-        self.generator = int_from_hexstr(generator or PRIME_1024_GEN)  # g
-        self.prime = int_from_hexstr(prime or PRIME_1024)  # N
-        self.multiplier = (  # k = SHA1(N | PAD(g))
-            int_from_hexstr(multiplier) if multiplier else self.hash(self.prime, self.pad(self.generator)))
+        self._gen = int_from_hex(generator or PRIME_1024_GEN)  # g
+        self._prime = int_from_hex(prime or PRIME_1024)  # N
+        self._mult = (  # k = H(N | PAD(g))
+            int_from_hex(multiplier) if multiplier else self.hash(self._prime, self.pad(self._gen)))
 
-        self.bits_salt = bits_salt
-        self.bits_random = bits_random
+        self._bits_salt = bits_salt
+        self._bits_random = bits_random
+
+    @property
+    def generator(self):
+        return hex_from(self._gen)
+
+    @property
+    def generator_b64(self):
+        return b64encode(int_to_bytes(self._gen))
+
+    @property
+    def prime(self):
+        return hex_from(self._prime)
+
+    @property
+    def prime_b64(self):
+        return b64encode(int_to_bytes(self._prime))
 
     def pad(self, val):
         """
         :param val:
         :rtype: bytes
         """
-        padding = len(int_to_bytes(self.prime))
+        padding = len(int_to_bytes(self._prime))
         padded = int_to_bytes(val).rjust(padding, str('\x00'))
         return padded
 
@@ -54,47 +79,51 @@ class SRPContext(object):
             return str(arg)
 
         digest = joiner.join(map(conv, args))
-        return int_from_hexstr(self.hash_func(digest).hexdigest())
+        return int_from_hex(self._hash_func(digest).hexdigest())
 
     def generate_random(self, bits_len=None):
-        bits_len = bits_len or self.bits_random
+        """Generates a random value.
+
+        :param int bits_len:
+        :rtype: int
+        """
+        bits_len = bits_len or self._bits_random
         return random().getrandbits(bits_len)
 
     def generate_salt(self):
         """s = random
 
-        :return:
+        :rtype: int
         """
-        return self.generate_random(self.bits_salt)
+        return self.generate_random(self._bits_salt)
 
     def get_common_secret(self, server_public, client_public):
-        """u = SHA1(PAD(A) | PAD(B))
+        """u = H(PAD(A) | PAD(B))
 
-        :param server_public:
-        :param client_public:
-        :return:
+        :param int server_public:
+        :param int client_public:
+        :rtype: int
         """
         return self.hash(self.pad(client_public), self.pad(server_public))
 
     def get_client_premaster_secret(self, password_hash, server_public, client_private, common_secret):
         """S = (B - (k * g^x)) ^ (a + (u * x)) % N
 
-        :param server_public:
-        :param password_hash:
-        :param client_private:
-        :param common_secret:
-        :return:
+        :param int server_public:
+        :param int password_hash:
+        :param int client_private:
+        :param int common_secret:
+        :rtype: int
         """
-        password_verifier = self.get_password_verifier(password_hash)
+        password_verifier = self.get_common_password_verifier(password_hash)
         return pow(
-            (server_public - (self.multiplier * password_verifier)),
-            (client_private + (common_secret * password_hash)), self.prime)
+            (server_public - (self._mult * password_verifier)),
+            (client_private + (common_secret * password_hash)), self._prime)
 
-    def get_session_key(self, premaster_secret):
+    def get_common_session_key(self, premaster_secret):
         """K = H(S)
 
-        :param premaster_secret:
-        :return: int -- not bytes!
+        :param int premaster_secret:
         :rtype: int
         """
         return self.hash(premaster_secret)
@@ -102,57 +131,109 @@ class SRPContext(object):
     def get_server_premaster_secret(self, password_verifier, server_private, client_public, common_secret):
         """S = (A * v^u) ^ b % N
 
-        :param password_verifier:
-        :param server_private:
-        :param client_public:
-        :param common_secret:
-        :return:
+        :param int password_verifier:
+        :param int server_private:
+        :param int client_public:
+        :param int common_secret:
+        :rtype: int
         """
-        return pow((client_public * pow(password_verifier, common_secret, self.prime)), server_private, self.prime)
+        return pow((client_public * pow(password_verifier, common_secret, self._prime)), server_private, self._prime)
 
     def generate_client_private(self):
         """a = random()
 
-        :return:
+        :rtype: int
         """
         return self.generate_random()
 
     def generate_server_private(self):
         """b = random()
 
-        :return:
+        :rtype: int
         """
         return self.generate_random()
 
     def get_client_public(self, client_private):
         """A = g^a % N
 
-        :param client_private:
-        :return:
+        :param int client_private:
+        :rtype: int
         """
-        return pow(self.generator, client_private, self.prime)
+        return pow(self._gen, client_private, self._prime)
 
     def get_server_public(self, password_verifier, server_private):
         """B = (k*v + g^b) % N
 
-        :param password_verifier:
-        :param server_private:
-        :return:
+        :param int password_verifier:
+        :param int server_private:
+        :rtype: int
         """
-        return ((self.multiplier * password_verifier) + pow(self.generator, server_private, self.prime)) % self.prime
+        return ((self._mult * password_verifier) + pow(self._gen, server_private, self._prime)) % self._prime
 
-    def get_password_hash(self, salt):
-        """x = SHA1(s | SHA1(I | ":" | P))
+    def get_common_password_hash(self, salt):
+        """x = H(s | H(I | ":" | P))
 
-        :param salt:
-        :return:
+        :param int salt:
+        :rtype: int
         """
-        return self.hash(salt, self.hash(self.username, self.password, joiner=':'))
+        password = self._password
+        if password is None:
+            raise SRPException('User _password should be in context for this scenario.')
 
-    def get_password_verifier(self, password_hash):
+        return self.hash(salt, self.hash(self._user, password, joiner=':'))
+
+    def get_common_password_verifier(self, password_hash):
         """v = g^x % N
 
-        :param password_hash:
-        :return:
+        :param int password_hash:
+        :rtype: int
         """
-        return pow(self.generator, password_hash, self.prime)
+        return pow(self._gen, password_hash, self._prime)
+
+    def get_common_session_key_proof(self, session_key, salt, server_public, client_public):
+        """M = H(H(N) XOR H(g) | H(U) | s | A | B | K)
+
+        :param int session_key:
+        :param int salt:
+        :param int server_public:
+        :param int client_public:
+        :rtype: int
+        """
+        h = self.hash
+        prove = h(
+            h(self._prime) ^ h(self._gen),
+            h(self._user),
+            salt,
+            client_public,
+            server_public,
+            session_key,
+        )
+        return prove
+
+    def get_common_session_key_proof_hash(self, session_key, session_key_proof, client_public):
+        """H(A | M | K)
+
+        :param int session_key:
+        :param int session_key_proof:
+        :param int client_public:
+        :rtype: int
+        """
+        return self.hash(client_public, session_key_proof, session_key)
+
+    def get_user_data_triplet(self, base64=False):
+        """( <_user>, <_password verifier>, <salt> )
+
+        :param base64:
+        :rtype: tuple
+        """
+        salt = self.generate_salt()
+        verifier = self.get_common_password_verifier(self.get_common_password_hash(salt))
+
+        if base64:
+            verifier = b64encode(int_to_bytes(verifier))
+            salt = b64encode(int_to_bytes(salt))
+        else:
+            verifier = hex_from(verifier)
+            salt = hex_from(salt)
+
+        return self._user, verifier, salt
