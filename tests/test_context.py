@@ -1,6 +1,6 @@
 import pytest
 
-from srptools import SRPContext
+from srptools import SRPContext, SRPException
 from srptools.utils import int_from_hex, hex_from
 
 
@@ -75,3 +75,9 @@ def test_context():
         server_session_key, client_session_key_prove, client_public)
     assert to_hex_u(server_session_key_prove) == '9CAB3C575A11DE37D3AC1421A9F009236A48EB55'
 
+
+def test_context_raises():
+    context = SRPContext('alice')
+
+    with pytest.raises(SRPException):
+        context.get_common_password_hash(123)

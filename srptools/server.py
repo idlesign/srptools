@@ -10,23 +10,26 @@ class SRPServerSession(SRPSessionBase):
 
     role = 'server'
 
-    def __init__(self, srp_context, password_verifier):
+    def __init__(self, srp_context, password_verifier, private=None):
         """
         :param SRPContext srp_context:
+        :param st|unicode password_verifier:
+        :param st|unicode private:
         """
-        super(SRPServerSession, self).__init__(srp_context)
-        self._context.password = None
+        super(SRPServerSession, self).__init__(srp_context, private)
 
         self._password_verifier = int_from_hex(password_verifier)
 
-        self._server_private = srp_context.generate_server_private()
-        self._server_public = srp_context.get_server_public(self._password_verifier, self._server_private)
+        if not private:
+            self._this_private = srp_context.generate_server_private()
+
+        self._server_public = srp_context.get_server_public(self._password_verifier, self._this_private)
 
     def init_session_key(self):
         super(SRPServerSession, self).init_session_key()
 
         premaster_secret = self._context.get_server_premaster_secret(
-            self._password_verifier, self._server_private, self._client_public, self._common_secret)
+            self._password_verifier, self._this_private, self._client_public, self._common_secret)
 
         self._key = self._context.get_common_session_key(premaster_secret)
 

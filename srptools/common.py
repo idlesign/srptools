@@ -1,7 +1,7 @@
 from base64 import b64encode
 
 from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64, value_encode
-from .exceptions import SRPClientException
+from .exceptions import SRPException
 
 
 if False:  # pragma: no cover
@@ -13,9 +13,10 @@ class SRPSessionBase(object):
 
     role = None
 
-    def __init__(self, srp_context):
+    def __init__(self, srp_context, private=None):
         """
         :param SRPContext srp_context:
+        :param str|unicode private:
         """
         self._context = srp_context
 
@@ -28,6 +29,11 @@ class SRPSessionBase(object):
         self._server_public = None
         self._client_public = None
 
+        self._this_private = None
+
+        if private:
+            self._this_private = int_from_hex(private)
+
     @property
     def _this_public(self):
         return getattr(self, '_%s_public' % self.role)
@@ -37,6 +43,14 @@ class SRPSessionBase(object):
         setattr(self, '_%s_public' % other, val)
 
     _other_public = property(None, _other_public)
+
+    @property
+    def private(self):
+        return hex_from(self._this_private)
+
+    @property
+    def private_b64(self):
+        return b64encode(int_to_bytes(self._this_private))
 
     @property
     def public(self):
@@ -104,7 +118,7 @@ class SRPSessionBase(object):
         other_public = int_from_hex(other_public)
 
         if other_public % self._context._prime == 0:  # A % N is zero | B % N is zero
-            raise SRPClientException('Wrong public provided for %s.' % self.__class__.__name__)
+            raise SRPException('Wrong public provided for %s.' % self.__class__.__name__)
 
         self._other_public = other_public
 

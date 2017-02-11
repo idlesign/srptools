@@ -56,13 +56,11 @@ Simplified workflow:
     client_session.process(server_public, salt)
     # Generate client public and session key.
     client_public = client_session.public
-    client_session_key = client_session.key
 
     # Process client public and compare session keys.
     server_session.process(client_public, salt)
-    server_session_key = server_session.key
 
-    assert server_session_key == client_session_key
+    assert server_session.key == client_session.key
 
 
 Extended workflow
@@ -96,10 +94,22 @@ Extended workflow
 Hints
 -----
 
-* ``SRPContext`` is rather flexible, so you can implement some custom server/client session logic with its help.
 * ``srptools.constants`` contains basic constants which can be used with ``SRPContext`` for server and client to agree
   upon communication details.
-* Basic values are represented as hex strings but base64 encoded values are also available:
+* ``.process()`` methods of session classes may raise ``SRPException`` in certain circumstances. Auth process on
+  such occasions must be stopped.
+* ``.private`` attribute of session classes may be used to restore sessions:
+    .. code-block:: python
+
+        [...]
+        server_private = server_session.private
+
+        # Restore session on new request.
+        server_session = SRPServerSession(context, password_verifier, private=server_private)
+        [...]
+
+* ``SRPContext`` is rather flexible, so you can implement some custom server/client session logic with its help.
+* Basic values are represented as hex strings but base64 encoded values are also supported:
 
     .. code-block:: python
 

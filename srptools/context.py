@@ -178,7 +178,7 @@ class SRPContext(object):
         """
         password = self._password
         if password is None:
-            raise SRPException('User _password should be in context for this scenario.')
+            raise SRPException('User password should be in context for this scenario.')
 
         return self.hash(salt, self.hash(self._user, password, joiner=':'))
 
