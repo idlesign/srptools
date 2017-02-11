@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from base64 import b64encode
 
 from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64, value_encode

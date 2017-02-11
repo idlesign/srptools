@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from .common import SRPSessionBase
 from .utils import int_from_hex
 

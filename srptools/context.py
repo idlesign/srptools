@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from random import SystemRandom as random
 from base64 import b64encode
 

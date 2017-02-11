@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from binascii import unhexlify
 from base64 import b64encode, b64decode
 
@@ -33,7 +34,7 @@ def hex_from(val):
 def int_from_hex(hexstr):
     """Returns int/long representation for a given hex string.
 
-    :param bytes|str hexstr:
+    :param bytes|str|unicode hexstr:
     :rtype: int|long
     """
     return int(hexstr, 16)
