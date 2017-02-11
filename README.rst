@@ -117,8 +117,8 @@ Hints
 
 Links
 -----
-* rfc2945 - The SRP Authentication and Key Exchange System
+* RFC 2945 - The SRP Authentication and Key Exchange System
     https://tools.ietf.org/html/rfc2945
 
-* rfc5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication
+* RFC 5054 - Using the Secure Remote Password (SRP) Protocol for TLS Authentication
     https://tools.ietf.org/html/rfc5054
