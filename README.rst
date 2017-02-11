@@ -29,13 +29,12 @@ Description
 *Tools to implement Secure Remote Password (SRP) authentication*
 
 
-Preliminary step:
+Preliminary step. Agree on communication details:
 
 .. code-block:: python
 
     from srptools import SRPContext
 
-    # Agree on communication details.
     context = SRPContext('alice', 'password123')
     username, password_verifier, salt = context.get_user_data_triplet()
     prime = context.prime
