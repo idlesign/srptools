@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 from random import SystemRandom as random
-from base64 import b64encode
 
-from six import integer_types
+from six import integer_types, PY3
 
-from .utils import int_from_hex, int_to_bytes, hex_from, value_encode
+from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, int_to_b64
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
 from .exceptions import SRPException
 
@@ -52,7 +51,7 @@ class SRPContext(object):
 
     @property
     def generator_b64(self):
-        return b64encode(int_to_bytes(self._gen))
+        return int_to_b64(self._gen)
 
     @property
     def prime(self):
@@ -60,7 +59,7 @@ class SRPContext(object):
 
     @property
     def prime_b64(self):
-        return b64encode(int_to_bytes(self._prime))
+        return int_to_b64(self._prime)
 
     def pad(self, val):
         """
@@ -68,18 +67,25 @@ class SRPContext(object):
         :rtype: bytes
         """
         padding = len(int_to_bytes(self._prime))
-        padded = int_to_bytes(val).rjust(padding, str('\x00'))
+        padded = int_to_bytes(val).rjust(padding, b'\x00')
         return padded
 
     def hash(self, *args, **kwargs):
-        joiner = str(kwargs.get('joiner', ''))
+        joiner = kwargs.get('joiner', '').encode('utf-8')
 
         def conv(arg):
             if isinstance(arg, integer_types):
                 arg = int_to_bytes(arg)
+
+            if PY3:
+                if isinstance(arg, str):
+                    arg = arg.encode('utf-8')
+                return arg
+
             return str(arg)
 
         digest = joiner.join(map(conv, args))
+
         return int_from_hex(self._hash_func(digest).hexdigest())
 
     def generate_random(self, bits_len=None):

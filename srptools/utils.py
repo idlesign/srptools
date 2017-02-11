@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
-from binascii import unhexlify
+from binascii import unhexlify, hexlify
 from base64 import b64encode, b64decode
 
-from six import string_types
+from six import integer_types
 
 
 def value_encode(val, base64=False):
@@ -25,10 +25,10 @@ def hex_from(val):
     :param bytes|str|unicode|int|long val:
     :rtype: bytes|str
     """
-    if isinstance(val, string_types):
-        return val.encode('hex')
+    if isinstance(val, integer_types):
+        return '%x' % val
 
-    return '%x' % val
+    return hexlify(val)
 
 
 def int_from_hex(hexstr):
@@ -56,6 +56,6 @@ def int_to_b64(val):
     """Returns base64 encoded bytes for a given int/long.
 
     :param int|long val:
-    :rtype: str
+    :rtype: bytes|str
     """
-    return b64encode(int_to_bytes(val))
+    return b64encode(int_to_bytes(val)).decode('ascii')

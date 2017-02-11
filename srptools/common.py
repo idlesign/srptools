@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
-from base64 import b64encode
 
-from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64, value_encode
+from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, int_to_b64
 from .exceptions import SRPException
 
 
@@ -51,7 +50,7 @@ class SRPSessionBase(object):
 
     @property
     def private_b64(self):
-        return b64encode(int_to_bytes(self._this_private))
+        return int_to_b64(self._this_private)
 
     @property
     def public(self):
@@ -59,7 +58,7 @@ class SRPSessionBase(object):
 
     @property
     def public_b64(self):
-        return b64encode(int_to_bytes(self._this_public))
+        return int_to_b64(self._this_public)
 
     @property
     def key(self):
@@ -67,7 +66,7 @@ class SRPSessionBase(object):
 
     @property
     def key_b64(self):
-        return b64encode(int_to_bytes(self._key))
+        return int_to_b64(self._key)
 
     @property
     def key_proof(self):
@@ -75,7 +74,7 @@ class SRPSessionBase(object):
 
     @property
     def key_proof_b64(self):
-        return b64encode(int_to_bytes(self._key_proof))
+        return int_to_b64(self._key_proof)
 
     @property
     def key_proof_hash(self):
@@ -83,7 +82,7 @@ class SRPSessionBase(object):
 
     @property
     def key_proof_hash_b64(self):
-        return b64encode(int_to_bytes(self._key_proof_hash))
+        return int_to_b64(self._key_proof_hash)
 
     @classmethod
     def _value_decode(cls, value, base64=False):
