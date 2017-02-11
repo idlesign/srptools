@@ -1,7 +1,7 @@
 
 
 class SRPException(Exception):
-    """Base srptool exception class."""
+    """Base srptools exception class."""
 
 
 class SRPClientException(SRPException):

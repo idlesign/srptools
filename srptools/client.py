@@ -1,7 +1,7 @@
 from .common import SRPSessionBase
 
 
-if False:
+if False:  # pragma: no cover
     from .context import SRPContext
 
 

@@ -2,7 +2,7 @@ from .common import SRPSessionBase
 from .utils import int_from_hex
 
 
-if False:
+if False:  # pragma: no cover
     from .context import SRPContext
 
 

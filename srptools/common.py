@@ -4,7 +4,7 @@ from .utils import hex_from, int_to_bytes, int_from_hex, hex_from_b64, value_enc
 from .exceptions import SRPClientException
 
 
-if False:
+if False:  # pragma: no cover
     from .context import SRPContext
 
 
