@@ -1,6 +1,12 @@
 srptools changelog
 ==================
 
+
+Unreleased
+----------
+* Hex strings are now even-length.
+
+
 v0.1.0
 ------
 + Basic functionality.

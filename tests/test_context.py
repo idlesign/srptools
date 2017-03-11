@@ -52,7 +52,7 @@ def test_context():
         '0876E2D013800D6C41BB59B6D5979B5C00A172B4A2A5903A0BDCAF8A709585EB2AFAFA8F3499B200210DCC1F10EB3394'
         '3CD67FC88A2F39A4BE5BEC4EC0A3212DC346D7E474B29EDE8A469FFECA686E5A')
 
-    expected_session_key = '17EEFA1CEFC5C2E626E21598987F31E0F1B11BB'
+    expected_session_key = '017EEFA1CEFC5C2E626E21598987F31E0F1B11BB'
 
     server_premaster_secret = context.get_server_premaster_secret(
         password_verifier, static_server_private, client_public, common_secret)

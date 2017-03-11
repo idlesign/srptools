@@ -26,7 +26,10 @@ def hex_from(val):
     :rtype: bytes|str
     """
     if isinstance(val, integer_types):
-        return '%x' % val
+        hex_str = '%x' % val
+        if len(hex_str) % 2:
+            hex_str = '0' + hex_str
+        return hex_str
 
     return hexlify(val)
 
@@ -46,9 +49,7 @@ def int_to_bytes(val):
     :param int|long val:
     :rtype: bytes|str
     """
-    hex_str = '%x' % val
-    if len(hex_str) % 2:
-        hex_str = '0' + hex_str
+    hex_str = hex_from(val)
     return unhexlify(hex_str)
 
 
