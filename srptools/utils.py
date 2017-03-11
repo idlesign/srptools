@@ -7,7 +7,7 @@ from six import integer_types
 
 def value_encode(val, base64=False):
     """Encodes int into hex or base64."""
-    return int_to_b64(val) if base64 else hex_from(val)
+    return b64_from(val) if base64 else hex_from(val)
 
 
 def hex_from_b64(val):
@@ -53,10 +53,12 @@ def int_to_bytes(val):
     return unhexlify(hex_str)
 
 
-def int_to_b64(val):
-    """Returns base64 encoded bytes for a given int/long.
+def b64_from(val):
+    """Returns base64 encoded bytes for a given int/long/bytes value.
 
-    :param int|long val:
+    :param int|long|bytes val:
     :rtype: bytes|str
     """
-    return b64encode(int_to_bytes(val)).decode('ascii')
+    if isinstance(val, integer_types):
+        val = int_to_bytes(val)
+    return b64encode(val).decode('ascii')

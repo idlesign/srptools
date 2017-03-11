@@ -70,11 +70,11 @@ def test_context():
 
     client_session_key_prove = context.get_common_session_key_proof(
         client_session_key, static_salt, server_public, client_public)
-    assert to_hex_u(client_session_key_prove) == '3F3BC67169EA71302599CF1B0F5D408B7B65D347'
+    assert to_hex_u(client_session_key_prove) == b'3F3BC67169EA71302599CF1B0F5D408B7B65D347'
 
     server_session_key_prove = context.get_common_session_key_proof_hash(
         server_session_key, client_session_key_prove, client_public)
-    assert to_hex_u(server_session_key_prove) == '9CAB3C575A11DE37D3AC1421A9F009236A48EB55'
+    assert to_hex_u(server_session_key_prove) == b'9CAB3C575A11DE37D3AC1421A9F009236A48EB55'
 
 
 def test_context_raises():
@@ -82,3 +82,65 @@ def test_context_raises():
 
     with pytest.raises(SRPException):
         context.get_common_password_hash(123)
+
+
+def test_byte_hashes():
+    static_salt = int_from_hex('99e50c9ad1bd2856')
+    static_client_private = int_from_hex('2b557313c052bb0e24a3c7462e8f436769a54e8d325da794004cefab83ac8b71')
+    static_server_private = int_from_hex(
+        '57e997761d2aeb4c8dbfed9fde120c0ec730af1237e296f58649a6b3193ff21b36f5cfaed3049ee0051e5378f666f13d'
+        '0c7c91040940a77a3ff1a461666c41e9aca3bd4747d74036e34941578553eb56d369638f796707425d0294809e81363f'
+        'ac90af29c7fde1ae142f8c280e3c2e17f9c4d68f644de5406aac7d378b812a34')
+
+    context = SRPContext('bouke', 'test')
+
+    password_hash = context.get_common_password_hash(static_salt)
+    password_verifier = context.get_common_password_verifier(password_hash)
+    assert hex_from(password_verifier) == (
+        '52e3ee0cde007d2e7cee87acca1c041999b528e56dec925112d30a63d8e814231c2cd3bac9ae40220c44d63029912f1f'
+        '7dda878e938ab5bfe7b87b854bb8385020d765054d07424eb5749fcd90344dbc0372432f6db25ae12cca4584ea72270c'
+        'a61d831540b10919a31fde1b7b9e1cc7110429d8bbde1a6fe005896697b91436')
+
+    client_public = context.get_client_public(static_client_private)
+    assert hex_from(client_public) == (
+        'e18b11cddbfa709020fa2c67344a20e6704dba3e5ca6c4ca864b94ff5442965c80dfa751a9404feb2234fcd02d7f179d'
+        'ca4e308d76af173ec4eacc13a8daf0237bf19d4ac0ae9a4db885fdb46d5107caea8f71a8db39eda96d594e216c632a0d'
+        '9720d84e8abb82b3dfa67fad099e1c67b13081bb564b2369c6db5f10358680b2')
+
+    server_public = context.get_server_public(password_verifier, static_server_private)
+    assert hex_from(server_public) == (
+        '0b3cc73f40a5fbdee992995dc26bfc43558803689798731fd303cdf18fdecbb5544f5caf960910f1b9449c772032be38'
+        '2b22d8763104781793553977bfdbd7cd3b05af0bf00deee22d76b477275e3294713711e3fe97f34724f9580bf2c055e7'
+        '8ae138664dfecaa2fe353768e30c3cc395541a929dc2af6a66e118ca937cffe8')
+
+    common_secret = context.get_common_secret(server_public, client_public)
+    assert hex_from(common_secret) == 'cb709a3c8a6767fda651ad6543436e4da2c85268'
+
+    expected_premaster_secret = (
+        '8c0ade0a5cc22507230bf092348a518fe9c29f1cbeb7a1a089ac070da5f5f7d540377fa30703164823017f421cc71237'
+        '2cc2093228fc6b05a4c77f05216c7c911fbdc2ed63f48a1ecec9da8a1edda3c810c724d8c45f83acd48a6c05f33d36b4'
+        '0ebca6db6f34a3f8e69289f7e49ef3492265d18488d447fb232b56306cb39a3a')
+
+    server_premaster_secret = context.get_server_premaster_secret(
+        password_verifier, static_server_private, client_public, common_secret)
+    assert hex_from(server_premaster_secret) == expected_premaster_secret
+
+    client_premaster_secret = context.get_client_premaster_secret(
+        password_hash, server_public, static_client_private, common_secret)
+    assert hex_from(client_premaster_secret) == expected_premaster_secret
+
+    expected_session_key = '86a5aff58ae7eca772b05bbb629f5b1c51677b14'
+
+    server_session_key = context.get_common_session_key(server_premaster_secret)
+    assert hex_from(server_session_key) == expected_session_key
+
+    client_session_key = context.get_common_session_key(client_premaster_secret)
+    assert hex_from(client_session_key) == expected_session_key
+
+    client_session_key_prove = context.get_common_session_key_proof(
+        client_session_key, static_salt, server_public, client_public)
+    assert hex_from(client_session_key_prove) == b'001961fb3aa5c24c437df55a18a41cabce3d57b4'
+
+    server_session_key_prove = context.get_common_session_key_proof_hash(
+        server_session_key, client_session_key_prove, client_public)
+    assert hex_from(server_session_key_prove) == b'f0a6d49e5037f34b770a8e2de9ec5e3c0880953b'

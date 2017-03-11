@@ -3,7 +3,7 @@ from random import SystemRandom as random
 
 from six import integer_types, PY3
 
-from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, int_to_b64
+from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, b64_from
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
 from .exceptions import SRPException
 
@@ -51,7 +51,7 @@ class SRPContext(object):
 
     @property
     def generator_b64(self):
-        return int_to_b64(self._gen)
+        return b64_from(self._gen)
 
     @property
     def prime(self):
@@ -59,7 +59,7 @@ class SRPContext(object):
 
     @property
     def prime_b64(self):
-        return int_to_b64(self._prime)
+        return b64_from(self._prime)
 
     def pad(self, val):
         """
@@ -71,7 +71,15 @@ class SRPContext(object):
         return padded
 
     def hash(self, *args, **kwargs):
+        """
+        :param args:
+        :param kwargs:
+            joiner - string to join values (args)
+            as_bytes - bool to return hash bytes instead of default int
+        :rtype: int|bytes
+        """
         joiner = kwargs.get('joiner', '').encode('utf-8')
+        as_bytes = kwargs.get('as_bytes', False)
 
         def conv(arg):
             if isinstance(arg, integer_types):
@@ -86,7 +94,12 @@ class SRPContext(object):
 
         digest = joiner.join(map(conv, args))
 
-        return int_from_hex(self._hash_func(digest).hexdigest())
+        hash_obj = self._hash_func(digest)
+
+        if as_bytes:
+            return hash_obj.digest()
+
+        return int_from_hex(hash_obj.hexdigest())
 
     def generate_random(self, bits_len=None):
         """Generates a random value.
@@ -204,7 +217,7 @@ class SRPContext(object):
         :param int salt:
         :param int server_public:
         :param int client_public:
-        :rtype: int
+        :rtype: bytes
         """
         h = self.hash
         prove = h(
@@ -214,6 +227,7 @@ class SRPContext(object):
             client_public,
             server_public,
             session_key,
+            as_bytes=True
         )
         return prove
 
@@ -221,11 +235,11 @@ class SRPContext(object):
         """H(A | M | K)
 
         :param int session_key:
-        :param int session_key_proof:
+        :param bytes session_key_proof:
         :param int client_public:
-        :rtype: int
+        :rtype: bytes
         """
-        return self.hash(client_public, session_key_proof, session_key)
+        return self.hash(client_public, session_key_proof, session_key, as_bytes=True)
 
     def get_user_data_triplet(self, base64=False):
         """( <_user>, <_password verifier>, <salt> )
