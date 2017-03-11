@@ -120,7 +120,7 @@ Extended workflow
     # Generate session key proof hash.
     server_session_key_proof_hash = client_session.key_proof_hash
 
-    # Verify session key proff hash received from server.
+    # Verify session key proof hash received from server.
     assert client_session.verify_proof(server_session_key_proof_hash)
 
 
