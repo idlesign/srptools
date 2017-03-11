@@ -22,7 +22,7 @@ class SRPSessionBase(object):
 
         self._salt = None  # type: int
         self._common_secret = None  # type: int
-        self._key = None  # type: int
+        self._key = None  # type: bytes
         self._key_proof = None  # type: bytes
         self._key_proof_hash = None  # type: bytes
 
