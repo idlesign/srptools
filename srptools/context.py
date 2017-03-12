@@ -144,9 +144,9 @@ class SRPContext(object):
         """K = H(S)
 
         :param int premaster_secret:
-        :rtype: int
+        :rtype: bytes
         """
-        return self.hash(premaster_secret)
+        return self.hash(premaster_secret, as_bytes=True)
 
     def get_server_premaster_secret(self, password_verifier, server_private, client_public, common_secret):
         """S = (A * v^u) ^ b % N
@@ -213,7 +213,7 @@ class SRPContext(object):
     def get_common_session_key_proof(self, session_key, salt, server_public, client_public):
         """M = H(H(N) XOR H(g) | H(U) | s | A | B | K)
 
-        :param int session_key:
+        :param bytes session_key:
         :param int salt:
         :param int server_public:
         :param int client_public:
@@ -234,7 +234,7 @@ class SRPContext(object):
     def get_common_session_key_proof_hash(self, session_key, session_key_proof, client_public):
         """H(A | M | K)
 
-        :param int session_key:
+        :param bytes session_key:
         :param bytes session_key_proof:
         :param int client_public:
         :rtype: bytes
