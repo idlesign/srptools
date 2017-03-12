@@ -5,7 +5,7 @@ srptools changelog
 Unreleased
 ----------
 * Hex strings are now even-length.
-* Fixed key proofs hashed values.
+* Fixed shareable hashed values with leading zeros issue.
 
 
 v0.1.0
