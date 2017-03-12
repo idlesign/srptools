@@ -2,8 +2,8 @@ srptools changelog
 ==================
 
 
-Unreleased
-----------
+v0.1.1
+------
 * Hex strings are now even-length.
 * Fixed shareable hashed values with leading zeros issue.
 
@@ -11,4 +11,3 @@ Unreleased
 v0.1.0
 ------
 + Basic functionality.
-
