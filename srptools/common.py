@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from binascii import unhexlify
+
 from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, b64_from
 from .exceptions import SRPException
 
@@ -20,7 +22,7 @@ class SRPSessionBase(object):
         """
         self._context = srp_context
 
-        self._salt = None  # type: int
+        self._salt = None  # type: bytes
         self._common_secret = None  # type: int
         self._key = None  # type: bytes
         self._key_proof = None  # type: bytes
@@ -105,7 +107,7 @@ class SRPSessionBase(object):
         return key, key_proof, key_proof_hash
 
     def init_base(self, salt):
-        salt = int_from_hex(salt)
+        salt = unhexlify(salt)
         self._salt = salt
 
     def init_session_key(self):
