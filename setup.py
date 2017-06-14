@@ -3,7 +3,7 @@ import io
 import sys
 from setuptools import setup, find_packages
 
-from srptools import VERSION
+from srptools.version import VERSION
 
 
 PATH_BASE = os.path.dirname(__file__)
@@ -27,7 +27,7 @@ setup(
     zip_safe=False,
 
     install_requires=['six'],
-    setup_requires=['six'] + PYTEST_RUNNER,
+    setup_requires=[] + PYTEST_RUNNER,
     extras_require={'cli':  ['click']},
     tests_require=['pytest'],
 
