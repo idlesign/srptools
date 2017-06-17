@@ -1,22 +1,40 @@
 import os
 import io
+import re
 import sys
 from setuptools import setup, find_packages
-
-from srptools.version import VERSION
 
 
 PATH_BASE = os.path.dirname(__file__)
 PYTEST_RUNNER = ['pytest-runner'] if 'test' in sys.argv else []
 
 
+def read(fpath):
+    return io.open(fpath).read()
+
+
+def get_version():
+    """Reads version number.
+
+    This workaround is required since __init__ is an entry point exposing
+    stuff from other modules, which may use dependencies unavailable
+    in current environment, which in turn will prevent this application
+    from install.
+
+    """
+    contents = read(os.path.join(PATH_BASE, 'srptools', '__init__.py'))
+    version = re.search('VERSION = \(([^)]+)\)', contents)
+    version = version.group(1).replace(', ', '.').strip()
+    return version
+
+
 setup(
     name='srptools',
-    version='.'.join(map(str, VERSION)),
+    version=get_version(),
     url='https://github.com/idlesign/srptools',
 
     description='Tools to implement Secure Remote Password (SRP) authentication',
-    long_description=io.open(os.path.join(PATH_BASE, 'README.rst')).read(),
+    long_description=read(os.path.join(PATH_BASE, 'README.rst')),
     license='BSD 3-Clause License',
 
     author='Igor `idle sign` Starikov',
