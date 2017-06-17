@@ -25,8 +25,8 @@ class SRPContext(object):
 
         :param str|unicode username: User name
         :param str|unicode password: User _password
-        :param str|unicode prime: Prime hex string . Default: PRIME_1024
-        :param str|unicode generator: Generator hex string. Default: PRIME_1024_GEN
+        :param str|unicode|None prime: Prime hex string . Default: PRIME_1024
+        :param str|unicode|None generator: Generator hex string. Default: PRIME_1024_GEN
         :param str|unicode hash_func: Function to calculate hash. Default: HASH_SHA_1
         :param str|unicode multiplier: Multiplier hex string. If not given will be calculated
             automatically using _prime and _gen.

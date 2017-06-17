@@ -1,8 +1,20 @@
 from __future__ import division
+from collections import OrderedDict
 
 import click
 
-from . import VERSION, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
+from srptools import VERSION, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
+from srptools.constants import *
+
+
+PRESETS = OrderedDict([
+    ('1024', (PRIME_1024, PRIME_1024_GEN)),
+    ('1536', (PRIME_1536, PRIME_1536_GEN)),
+    ('2048', (PRIME_2048, PRIME_2048_GEN)),
+    ('3072', (PRIME_3072, PRIME_3072_GEN)),
+    ('4096', (PRIME_4096, PRIME_4096_GEN)),
+    ('6144', (PRIME_6144, PRIME_6144_GEN)),
+])
 
 
 @click.group()
@@ -26,6 +38,25 @@ def base():
 
     """
 
+def common_options(func):
+    """Commonly used command options."""
+
+    def parse_preset(ctx, param, value):
+        return PRESETS.get(value, (None, None))
+
+    def parse_private(ctx, param, value):
+        return hex_from_b64(value) if value else None
+
+    func = click.option('--private', default=None, help='Private.', callback=parse_private)(func)
+
+    func = click.option(
+        '--preset',
+        default=None, help='Preset ID defining prime and generator pair.',
+        type=click.Choice(PRESETS.keys()), callback=parse_preset
+    )(func)
+
+    return func
+
 
 @base.group()
 def server():
@@ -40,11 +71,13 @@ def client():
 @server.command()
 @click.argument('username')
 @click.argument('password_verifier')
-@click.option('--private', default=None, help='Server private')
-def get_private_and_public(username, password_verifier, private):
+@common_options
+def get_private_and_public(username, password_verifier, private, preset):
     """Print out server public and private."""
     session = SRPServerSession(
-        SRPContext(username), hex_from_b64(password_verifier), private=hex_from_b64(private))
+        SRPContext(username, prime=preset[0], generator=preset[1]),
+        hex_from_b64(password_verifier), private=private)
+
     click.secho('Server private: %s' % session.private_b64)
     click.secho('Server public: %s' % session.public_b64)
 
@@ -54,11 +87,13 @@ def get_private_and_public(username, password_verifier, private):
 @click.argument('password_verifier')
 @click.argument('salt')
 @click.argument('client_public')
-@click.option('--private', default=None, help='Server private')
-def get_session_data(username, password_verifier, salt, client_public, private):
+@common_options
+def get_session_data( username, password_verifier, salt, client_public, private, preset):
     """Print out server session data."""
     session = SRPServerSession(
-        SRPContext(username), hex_from_b64(password_verifier), private=hex_from_b64(private))
+        SRPContext(username, prime=preset[0], generator=preset[1]),
+        hex_from_b64(password_verifier), private=private)
+
     session.process(client_public, salt, base64=True)
 
     click.secho('Server session key: %s' % session.key_b64)
@@ -69,10 +104,13 @@ def get_session_data(username, password_verifier, salt, client_public, private):
 @client.command()
 @click.argument('username')
 @click.argument('password')
-@click.option('--private', default=None, help='Client private')
-def get_private_and_public(username, password, private):
+@common_options
+def get_private_and_public(ctx, username, password, private, preset):
     """Print out server public and private."""
-    session = SRPClientSession(SRPContext(username, password), private=hex_from_b64(private))
+    session = SRPClientSession(
+        SRPContext(username, password, prime=preset[0], generator=preset[1]),
+        private=private)
+
     click.secho('Client private: %s' % session.private_b64)
     click.secho('Client public: %s' % session.public_b64)
 
@@ -82,10 +120,13 @@ def get_private_and_public(username, password, private):
 @click.argument('password')
 @click.argument('salt')
 @click.argument('server_public')
-@click.option('--private', default=None, help='Client private')
-def get_session_data(username, password, salt, server_public, private):
+@common_options
+def get_session_data(ctx, username, password, salt, server_public, private, preset):
     """Print out client session data."""
-    session = SRPClientSession(SRPContext(username, password), private=hex_from_b64(private))
+    session = SRPClientSession(
+        SRPContext(username, password, prime=preset[0], generator=preset[1]),
+        private=private)
+
     session.process(server_public, salt, base64=True)
 
     click.secho('Client session key: %s' % session.key_b64)

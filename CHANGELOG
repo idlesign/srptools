@@ -4,6 +4,7 @@ srptools changelog
 
 Unreleased
 ----------
++ Added 'preset' CLI option
 * Improved compatibility with other implementations.
 
 

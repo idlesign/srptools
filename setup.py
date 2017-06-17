@@ -46,7 +46,7 @@ setup(
 
     install_requires=['six'],
     setup_requires=[] + PYTEST_RUNNER,
-    extras_require={'cli':  ['click']},
+    extras_require={'cli':  ['click>=2.0']},
     tests_require=['pytest'],
 
     entry_points={'console_scripts': ['srptools = srptools.cli:main']},
