@@ -4,6 +4,7 @@ srptools changelog
 
 Unreleased
 ----------
+* Fixed unable to install into envs with 'six' unavailable
 + Added 'preset' CLI option
 * Improved compatibility with other implementations.
 
