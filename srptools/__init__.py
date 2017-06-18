@@ -5,4 +5,4 @@ from .exceptions import SRPException
 from .utils import hex_from_b64
 
 
-VERSION = (0, 1, 1)
+VERSION = (0, 2, 0)
