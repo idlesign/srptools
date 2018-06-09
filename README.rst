@@ -2,12 +2,9 @@ srptools
 ========
 https://github.com/idlesign/srptools
 
-|release| |stats|  |lic| |ci| |coverage| |health|
+|release| |lic| |ci| |coverage| |health|
 
 .. |release| image:: https://img.shields.io/pypi/v/srptools.svg
-    :target: https://pypi.python.org/pypi/srptools
-
-.. |stats| image:: https://img.shields.io/pypi/dm/srptools.svg
     :target: https://pypi.python.org/pypi/srptools
 
 .. |lic| image:: https://img.shields.io/pypi/l/srptools.svg
