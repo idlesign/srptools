@@ -200,7 +200,7 @@ class SRPContext(object):
         if password is None:
             raise SRPException('User password should be in context for this scenario.')
 
-        return self.hash(salt, self.hash(self._user, password, joiner=':'))
+        return self.hash(salt, self.hash(self._user, password, joiner=':', as_bytes=True))
 
     def get_common_password_verifier(self, password_hash):
         """v = g^x % N
