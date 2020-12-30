@@ -8,7 +8,7 @@ https://github.com/idlesign/srptools
 
 ----
 
-|release| |stats|  |lic| |ci| |coverage| |health|
+|release| |stats|  |lic| |ci| |coverage|
 
 .. |release| image:: https://img.shields.io/pypi/v/srptools.svg
     :target: https://pypi.python.org/pypi/srptools
@@ -24,9 +24,6 @@ https://github.com/idlesign/srptools
 
 .. |coverage| image:: https://img.shields.io/coveralls/idlesign/srptools/master.svg
     :target: https://coveralls.io/r/idlesign/srptools
-
-.. |health| image:: https://landscape.io/github/idlesign/srptools/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/idlesign/srptools/master
 
 
 Description
