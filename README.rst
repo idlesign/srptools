@@ -2,25 +2,14 @@ srptools
 ========
 https://github.com/idlesign/srptools
 
-.. image:: https://idlesign.github.io/lbc/py2-lbc.svg
-   :target: https://idlesign.github.io/lbc/
-   :alt: LBC Python 2
 
-----
-
-|release| |stats|  |lic| |ci| |coverage|
+|release| |lic| |coverage|
 
 .. |release| image:: https://img.shields.io/pypi/v/srptools.svg
     :target: https://pypi.python.org/pypi/srptools
 
-.. |stats| image:: https://img.shields.io/pypi/dm/srptools.svg
-    :target: https://pypi.python.org/pypi/srptools
-
 .. |lic| image:: https://img.shields.io/pypi/l/srptools.svg
     :target: https://pypi.python.org/pypi/srptools
-
-.. |ci| image:: https://img.shields.io/travis/idlesign/srptools/master.svg
-    :target: https://travis-ci.org/idlesign/srptools
 
 .. |coverage| image:: https://img.shields.io/coveralls/idlesign/srptools/master.svg
     :target: https://coveralls.io/r/idlesign/srptools
