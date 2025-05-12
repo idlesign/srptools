@@ -28,6 +28,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - run: pip install setuptools pytest
+      - run: pip install setuptools pytest six
       - run: python setup.py install
       - run: pytest
