@@ -2,9 +2,8 @@ from __future__ import unicode_literals
 
 from binascii import unhexlify
 
-from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, b64_from
 from .exceptions import SRPException
-
+from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, b64_from
 
 if False:  # pragma: no cover
     from .context import SRPContext
@@ -51,6 +50,10 @@ class SRPSessionBase(object):
         return hex_from(self._this_private)
 
     @property
+    def private_bin(self):
+        return self._context.pad(self._this_private)
+
+    @property
     def private_b64(self):
         return b64_from(self._this_private)
 
@@ -63,12 +66,21 @@ class SRPSessionBase(object):
         return b64_from(self._this_public)
 
     @property
+    def public_bin(self):
+        return self._context.pad(self._this_public)
+
+    @property
     def key(self):
         return hex_from(self._key)
 
     @property
     def key_b64(self):
         return b64_from(self._key)
+
+    @property
+    def key_bin(self):
+        # -> bytes
+        return self._key
 
     @property
     def key_proof(self):
@@ -79,12 +91,22 @@ class SRPSessionBase(object):
         return b64_from(self._key_proof)
 
     @property
+    def key_proof_bin(self):
+        # -> bytes
+        return self._key_proof
+
+    @property
     def key_proof_hash(self):
         return hex_from(self._key_proof_hash)
 
     @property
     def key_proof_hash_b64(self):
         return b64_from(self._key_proof_hash)
+
+    @property
+    def key_proof_hash_bin(self):
+        # -> bytes
+        return self._key_proof_hash
 
     @classmethod
     def _value_decode(cls, value, base64=False):
