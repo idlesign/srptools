@@ -44,5 +44,5 @@ class SRPServerSession(SRPSessionBase):
     def verify_proof(self, key_proof, base64=False):
         super(SRPServerSession, self).verify_proof(key_proof)
         if isinstance(key_proof, bytes):
-            return key_proof == self.key_proof
+            return key_proof == self._key_proof
         return self._value_decode(key_proof, base64) == self.key_proof

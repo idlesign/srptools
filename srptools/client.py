@@ -37,5 +37,5 @@ class SRPClientSession(SRPSessionBase):
     def verify_proof(self, key_proof, base64=False):
         super(SRPClientSession, self).verify_proof(key_proof)
         if isinstance(key_proof, bytes):
-            return key_proof == self.key_proof_hash
+            return key_proof == self._key_proof_hash
         return self._value_decode(key_proof, base64) == self.key_proof_hash
