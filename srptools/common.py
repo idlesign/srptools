@@ -2,8 +2,10 @@ from __future__ import unicode_literals
 
 from binascii import unhexlify
 
+from six import integer_types
+
 from .exceptions import SRPException
-from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, b64_from
+from .utils import hex_from, int_from_hex, int_from_bytes, hex_from_b64, value_encode, b64_from
 
 if False:  # pragma: no cover
     from .context import SRPContext
@@ -17,7 +19,8 @@ class SRPSessionBase(object):
     def __init__(self, srp_context, private=None):
         """
         :param SRPContext srp_context:
-        :param str|unicode private:
+        :param int|bytes|str private: Private value. Accepts int (binary path),
+        bytes (big-endian), or hex string.
         """
         self._context = srp_context
 
@@ -33,7 +36,12 @@ class SRPSessionBase(object):
         self._this_private = None  # type: int
 
         if private:
-            self._this_private = int_from_hex(private)  # type: int
+            if isinstance(private, integer_types):
+                self._this_private = private  # type: int
+            elif isinstance(private, bytes):
+                self._this_private = int_from_bytes(private)  # type: int
+            else:
+                self._this_private = int_from_hex(private)  # type: int
 
     @property
     def _this_public(self):
@@ -110,10 +118,13 @@ class SRPSessionBase(object):
 
     @classmethod
     def _value_decode(cls, value, base64=False):
-        """Decodes value into hex optionally from base64"""
+        """Decodes value into hex string optionally from base64."""
         return hex_from_b64(value) if base64 else value
 
     def process(self, other_public, salt, base64=False):
+        if base64 and (isinstance(other_public, bytes) or isinstance(salt, bytes)):
+            raise SRPException(
+                'Cannot decode base64 from bytes. If the value is bytes, it is already decoded and should not be treated as base64.')
         salt = self._value_decode(salt, base64)
         other_public = self._value_decode(other_public, base64)
 
@@ -129,8 +140,10 @@ class SRPSessionBase(object):
         return key, key_proof, key_proof_hash
 
     def init_base(self, salt):
-        salt = unhexlify(salt)
-        self._salt = salt
+        if isinstance(salt, bytes):
+            self._salt = salt
+        else:
+            self._salt = unhexlify(salt)
 
     def init_session_key(self):
         """"""
@@ -139,13 +152,38 @@ class SRPSessionBase(object):
         """"""
 
     def init_common_secret(self, other_public):
-        other_public = int_from_hex(other_public)
+        """Compute common secret from the other party's public value.
 
-        if other_public % self._context._prime == 0:  # A % N is zero | B % N is zero
+        Accepts:
+
+        - ``int``: used directly (binary path).
+        - ``bytes``: big-endian, converted to int.
+        - ``str``: hex string.
+
+        .. warning::
+            Base64 input is NOT supported. The caller (e.g. :meth:`process`)
+            is responsible for decoding base64 to hex before calling this
+            method. Passing a base64 string directly will be treated as hex,
+            producing a silently corrupted session key.
+
+        :raises SRPException: if the value cannot be decoded or if
+            ``other_public % prime == 0`` (RFC 2945 §3).
+        """
+
+        if isinstance(other_public, integer_types):
+            pass
+        elif isinstance(other_public, bytes):
+            other_public = int_from_bytes(other_public)
+        else:
+            # str must be hex, not base64. If the caller passed base64, this will produce a wrong session key, but that's their problem.
+            try:
+                other_public = int(other_public, 16)
+            except (ValueError, TypeError) as e:
+                raise SRPException(
+                    'Wrong public provided for %s: cannot decode value: %s' % (self.__class__.__name__, e))
+        if other_public % self._context._prime == 0:
             raise SRPException('Wrong public provided for %s.' % self.__class__.__name__)
-
         self._other_public = other_public
-
         self._common_secret = self._context.get_common_secret(self._server_public, self._client_public)
 
     def init_session_key_proof(self):

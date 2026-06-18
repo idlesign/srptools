@@ -14,7 +14,7 @@ def hex_from_b64(val):
     """Returns hex string representation for base64 encoded value.
 
     :param str val:
-    :rtype: bytes|str
+    :rtype: str
     """
     return hex_from(b64decode(val))
 
@@ -23,7 +23,7 @@ def hex_from(val):
     """Returns hex string representation for a given value.
 
     :param bytes|str|unicode|int|long val:
-    :rtype: bytes|str
+    :rtype: str
     """
     if isinstance(val, integer_types):
         hex_str = '%x' % val
@@ -31,7 +31,7 @@ def hex_from(val):
             hex_str = '0' + hex_str
         return hex_str
 
-    return hexlify(val)
+    return hexlify(val).decode('ascii')
 
 
 def int_from_hex(hexstr):
@@ -51,6 +51,15 @@ def int_to_bytes(val):
     """
     hex_str = hex_from(val)
     return unhexlify(hex_str)
+
+
+def int_from_bytes(val):
+    """Returns int/long representation for a given bytes value (big-endian).
+
+    :param bytes|bytearray val:
+    :rtype: int|long
+    """
+    return int(hexlify(val), 16)
 
 
 def b64_from(val):

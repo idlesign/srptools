@@ -1,11 +1,12 @@
 from __future__ import unicode_literals
+
 from random import SystemRandom as random
 
 from six import integer_types, PY3
 
-from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, b64_from
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
 from .exceptions import SRPException
+from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, b64_from
 
 
 class SRPContext(object):
@@ -18,6 +19,7 @@ class SRPContext(object):
         https://tools.ietf.org/html/rfc5054
 
     """
+
     def __init__(
             self, username, password=None, prime=None, generator=None, hash_func=None, multiplier=None,
             bits_random=1024, bits_salt=64):
@@ -193,7 +195,7 @@ class SRPContext(object):
     def get_common_password_hash(self, salt):
         """x = H(s | H(I | ":" | P))
 
-        :param int salt:
+        :param int|bytes|str salt:
         :rtype: int
         """
         password = self._password
@@ -214,7 +216,7 @@ class SRPContext(object):
         """M = H(H(N) XOR H(g) | H(U) | s | A | B | K)
 
         :param bytes session_key:
-        :param int salt:
+        :param int|bytes|str salt:
         :param int server_public:
         :param int client_public:
         :rtype: bytes
@@ -241,14 +243,23 @@ class SRPContext(object):
         """
         return self.hash(client_public, session_key_proof, session_key, as_bytes=True)
 
-    def get_user_data_triplet(self, base64=False):
+    def get_user_data_triplet(self, base64=False, binary=False):
         """( <_user>, <_password verifier>, <salt> )
 
-        :param base64:
+        :param bool base64: Output verifier and salt as base64 strings.
+        :param bool binary: Output verifier and salt as raw bytes. Verifier
+            is prime-width (padded), salt is bits_salt-width (padded).
+            Mutually exclusive with ``base64``.
         :rtype: tuple
+        :raises SRPException: if both ``base64`` and ``binary`` are True.
         """
+        if binary and base64:
+            raise SRPException('binary and base64 are mutually exclusive')
         salt = self.generate_salt()
         verifier = self.get_common_password_verifier(self.get_common_password_hash(salt))
+        if binary:
+            salt_bytes = int_to_bytes(salt).rjust(self._bits_salt // 8, b'\x00')
+            return self._user, self.pad(verifier), salt_bytes
 
         verifier = value_encode(verifier, base64)
         salt = value_encode(salt, base64)

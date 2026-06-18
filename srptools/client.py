@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 from .common import SRPSessionBase
 
-
 if False:  # pragma: no cover
     from .context import SRPContext
 
 
 class SRPClientSession(SRPSessionBase):
-
     role = 'client'
 
     def __init__(self, srp_context, private=None):
@@ -26,7 +24,6 @@ class SRPClientSession(SRPSessionBase):
 
     def init_base(self, salt):
         super(SRPClientSession, self).init_base(salt)
-
         self._password_hash = self._context.get_common_password_hash(self._salt)
 
     def init_session_key(self):
@@ -39,5 +36,6 @@ class SRPClientSession(SRPSessionBase):
 
     def verify_proof(self, key_proof, base64=False):
         super(SRPClientSession, self).verify_proof(key_proof)
-
+        if isinstance(key_proof, bytes):
+            return key_proof == self.key_proof_hash
         return self._value_decode(key_proof, base64) == self.key_proof_hash
