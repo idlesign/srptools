@@ -147,6 +147,71 @@ Usage hints
         server_public_hex = hex_from_b64(server_public)
 
 
+
+Binary IO
+---------
+
+In addition to the default hex strings and optional base64, sessions and
+``SRPContext`` accept and produce raw ``bytes`` directly. This avoids the
+hex/base64 round-trip when integrating with binary protocols, databases, or
+network stacks.
+
+User data triplet as bytes:
+
+.. code-block:: python
+
+    context = SRPContext('alice', 'password123')
+    username, verifier_bin, salt_bin = context.get_user_data_triplet(binary=True)
+    # verifier_bin: prime-width bytes (e.g. 128 bytes for a 1024-bit prime)
+    # salt_bin:    bits_salt-width bytes (e.g. 8 bytes for the default 64-bit salt)
+
+Session with binary inputs:
+
+.. code-block:: python
+
+    # Server accepts a bytes verifier.
+    server_session = SRPServerSession(
+        SRPContext(username, prime=prime, generator=gen), verifier_bin)
+    server_public_bin = server_session.public_bin
+
+    # Client processes bytes public and bytes salt.
+    client_session = SRPClientSession(
+        SRPContext('alice', 'password123', prime=prime, generator=gen))
+    client_session.process(server_public_bin, salt_bin)
+    client_public_bin = client_session.public_bin
+
+    # Server processes bytes public and bytes salt.
+    server_session.process(client_public_bin, salt_bin)
+
+    assert client_session.key_bin == server_session.key_bin
+
+Session restore from a bytes private:
+
+.. code-block:: python
+
+    server_private_bin = server_session.private_bin
+
+    # Restore on a new request with the same bytes private.
+    server_session = SRPServerSession(
+        SRPContext(username, prime=prime, generator=gen), verifier_bin,
+        private=server_private_bin)
+
+Proof verification over the binary channel:
+
+.. code-block:: python
+
+    # Server verifies the client's M (bytes).
+    assert server_session.verify_proof(client_session.key_proof_bin)
+    # Client verifies the server's H(A|M|K) (bytes).
+    assert client_session.verify_proof(server_session.key_proof_hash_bin)
+
+.. note::
+
+    ``process()`` rejects ``base64=True`` together with ``bytes`` input —
+    base64 decoding only applies to ``str`` arguments. ``bytes`` input is
+    treated as already-decoded raw data.
+
+
 Links
 -----
 * RFC 2945 - The SRP Authentication and Key Exchange System
