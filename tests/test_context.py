@@ -52,7 +52,7 @@ def test_context():
         '0876E2D013800D6C41BB59B6D5979B5C00A172B4A2A5903A0BDCAF8A709585EB2AFAFA8F3499B200210DCC1F10EB3394'
         '3CD67FC88A2F39A4BE5BEC4EC0A3212DC346D7E474B29EDE8A469FFECA686E5A')
 
-    expected_session_key = b'017EEFA1CEFC5C2E626E21598987F31E0F1B11BB'
+    expected_session_key = '017EEFA1CEFC5C2E626E21598987F31E0F1B11BB'
 
     server_premaster_secret = context.get_server_premaster_secret(
         password_verifier, static_server_private, client_public, common_secret)
@@ -70,11 +70,11 @@ def test_context():
 
     client_session_key_prove = context.get_common_session_key_proof(
         client_session_key, static_salt, server_public, client_public)
-    assert to_hex_u(client_session_key_prove) == b'3F3BC67169EA71302599CF1B0F5D408B7B65D347'
+    assert to_hex_u(client_session_key_prove) == '3F3BC67169EA71302599CF1B0F5D408B7B65D347'
 
     server_session_key_prove = context.get_common_session_key_proof_hash(
         server_session_key, client_session_key_prove, client_public)
-    assert to_hex_u(server_session_key_prove) == b'9CAB3C575A11DE37D3AC1421A9F009236A48EB55'
+    assert to_hex_u(server_session_key_prove) == '9CAB3C575A11DE37D3AC1421A9F009236A48EB55'
 
 
 def test_context_raises():
@@ -129,7 +129,7 @@ def test_byte_hashes():
         password_hash, server_public, static_client_private, common_secret)
     assert hex_from(client_premaster_secret) == expected_premaster_secret
 
-    expected_session_key = b'86a5aff58ae7eca772b05bbb629f5b1c51677b14'
+    expected_session_key = '86a5aff58ae7eca772b05bbb629f5b1c51677b14'
 
     server_session_key = context.get_common_session_key(server_premaster_secret)
     assert hex_from(server_session_key) == expected_session_key
@@ -139,8 +139,8 @@ def test_byte_hashes():
 
     client_session_key_prove = context.get_common_session_key_proof(
         client_session_key, static_salt, server_public, client_public)
-    assert hex_from(client_session_key_prove) == b'001961fb3aa5c24c437df55a18a41cabce3d57b4'
+    assert hex_from(client_session_key_prove) == '001961fb3aa5c24c437df55a18a41cabce3d57b4'
 
     server_session_key_prove = context.get_common_session_key_proof_hash(
         server_session_key, client_session_key_prove, client_public)
-    assert hex_from(server_session_key_prove) == b'f0a6d49e5037f34b770a8e2de9ec5e3c0880953b'
+    assert hex_from(server_session_key_prove) == 'f0a6d49e5037f34b770a8e2de9ec5e3c0880953b'
