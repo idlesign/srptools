@@ -1,0 +1,85 @@
+[project]
+name = "srptools"
+dynamic = ["version"]
+description = "Tools to implement Secure Remote Password (SRP) authentication"
+authors = [
+    { name = "Igor Starikov", email = "idlesign@yandex.ru" }
+]
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = ["SRP", "authentication", "security"]
+dependencies = [
+    "six",
+]
+
+[project.urls]
+Homepage = "https://github.com/idlesign/srptools"
+Documentation = "https://srptools.readthedocs.io/"
+
+[project.scripts]
+srptools = "srptools.cli:main"
+
+[dependency-groups]
+dev = [
+    {include-group = "docs"},
+    {include-group = "linters"},
+    {include-group = "tests"},
+]
+docs = [
+    "mkdocs-material",
+    "mkdocs-navsorted-plugin",
+    "mkdocs-apidescribed-plugin",
+]
+linters = [
+    "ruff==0.13.1",
+]
+tests = [
+    "pytest",
+]
+
+[project.optional-dependencies]
+cli = [
+    "click>=2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/srptools/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/srptools"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+source = [
+    "src/",
+]
+omit = [
+    "src/srptools/cli.py",
+]
+
+[tool.tox]
+skip_missing_interpreters = true
+env_list = [
+    "py310",
+    "py311",
+    "py312",
+]
+
+[tool.tox.env_run_base]
+dependency_groups = ["tests"]
+commands = [
+    ["pytest", { replace = "posargs", default = ["tests"], extend = true }],
+]

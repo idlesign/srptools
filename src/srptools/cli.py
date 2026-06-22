@@ -18,7 +18,7 @@ PRESETS = OrderedDict([
 
 
 @click.group()
-@click.version_option(version='.'.join(map(str, VERSION)))
+@click.version_option(version=VERSION)
 def base():
     """srptools command line utility.
 

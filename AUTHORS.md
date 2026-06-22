@@ -1,11 +1,9 @@
-srptools authors
-================
+# srptools authors
 
 Created by Igor `idle sign` Starikov.
 
 
-Contributors
-------------
+## Contributors
 
-Bouke Haarsma <https://github.com/Bouke>
-Michael Zimmermann <https://github.com/M1cha>
+* Bouke Haarsma <https://github.com/Bouke>
+* Michael Zimmermann <https://github.com/M1cha>
