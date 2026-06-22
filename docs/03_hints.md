@@ -10,7 +10,11 @@
     server_private = server_session.private
 
     # Restore session on new request.
-    server_session = SRPServerSession(context, password_verifier, private=server_private)
+    server_session = SRPServerSession(
+        context,
+        password_verifier=password_verifier,
+        private=server_private,
+    )
     ```
 
 * `SRPContext` is rather flexible, so you can implement some custom server/client session logic with its help.
@@ -21,7 +25,7 @@
 
     # Receive server public and salt and process them.
     client_session = SRPClientSession(SRPContext('alice', 'password123', prime=prime, generator=gen))
-    client_session.process(server_public, salt, base64=True)
+    client_session.process(other_public=server_public, salt=salt, base64=True)
 
     # Use srptools.hex_from_b64() to represent base64 value as hex.
     server_public_hex = hex_from_b64(server_public)

@@ -45,5 +45,4 @@ ignore = []
 
 [lint.extend-per-file-ignores]
 "tests/*" = [
-    "PLC0415",
 ]

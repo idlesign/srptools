@@ -3,6 +3,7 @@
 
 ### Unreleased
 * !! Drop Python 2 support.
+* !! Massive refactor for Python 3.10+.
 
 ### v1.0.1 [2020-09-12]
 * !! Dropped QA for Python 2.

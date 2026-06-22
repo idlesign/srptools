@@ -4,16 +4,16 @@ Command-line utility requires `click` package to be installed.
 
 Basic scenario:
 
-```text
-> srptools get_user_data_triplet
-> srptools server get_private_and_public
-> srptools client get_private_and_public
-> srptools client get_session_data
-> srptools server get_session_data
+```bash
+srptools get-user-data-triplet
+srptools server get-private-and-public
+srptools client get-private-and-public
+srptools client get-session-data
+srptools server get-session-data
 ```
 
 Help is available:
 
-```text
-> srptools --help
+```bash
+srptools --help
 ```

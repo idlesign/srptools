@@ -1,6 +1,5 @@
 import hashlib
 
-
 HASH_SHA_1 = hashlib.sha1
 HASH_SHA_256 = hashlib.sha256
 

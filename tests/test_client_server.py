@@ -1,6 +1,6 @@
 import pytest
 
-from srptools import SRPContext, SRPClientSession, SRPServerSession, SRPException
+from srptools import SRPClientSession, SRPContext, SRPException, SRPServerSession
 from srptools.utils import int_from_hex, value_encode
 
 
@@ -19,7 +19,8 @@ def test_extended():
     # Actual negotiation
 
     # Receive username from client and generate server public.
-    server_session = SRPServerSession(SRPContext(username, prime=prime, generator=gen), password_verifier)
+    server_session = SRPServerSession(
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier)
     server_public = server_session.public
     server_public_b64 = server_session.public_b64
     server_private = server_session.private
@@ -27,7 +28,7 @@ def test_extended():
 
     # Receive server public and salt and process them.
     client_session = SRPClientSession(SRPContext(username, 'password123', prime=prime, generator=gen))
-    client_session.process(server_public, salt)
+    client_session.process(other_public=server_public, salt=salt)
     # Generate client public and session key proof.
     client_public = client_session.public
     client_public_b64 = client_session.public_b64
@@ -36,7 +37,7 @@ def test_extended():
     assert client_session.private_b64
 
     # Process client public and verify session key proof.
-    server_session.process(client_public, salt)
+    server_session.process(other_public=client_public, salt=salt)
     assert server_session.verify_proof(client_session_key_proof)
     # Generate session key proof hash.
     server_session_key_proof_hash = client_session.key_proof_hash
@@ -50,21 +51,21 @@ def test_extended():
 
     # Restore sessions from privates.
     server_session = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), password_verifier,
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier,
         private=server_private)
     client_session = SRPClientSession(
         SRPContext(username, 'password123', prime=prime, generator=gen),
         private=client_private)
 
-    skey_cl, skey_proof_cl, skey_prove_hash_cl = client_session.process(server_public, salt)
-    skey_srv, skey_proof_srv, skey_prove_hash_srv = server_session.process(client_public, salt)
+    skey_cl, skey_proof_cl, _ = client_session.process(other_public=server_public, salt=salt)
+    skey_srv, skey_proof_srv, _ = server_session.process(other_public=client_public, salt=salt)
 
     assert skey_cl == skey_srv
     assert skey_proof_cl == skey_proof_srv
 
     # Base 64 test
-    skey_cl, skey_proof_cl, skey_prove_hash_cl = client_session.process(server_public_b64, salt_b64, base64=True)
-    skey_srv, skey_proof_srv, skey_prove_hash_srv = server_session.process(client_public_b64, salt_b64, base64=True)
+    skey_cl, skey_proof_cl, _ = client_session.process(other_public=server_public_b64, salt=salt_b64, base64=True)
+    skey_srv, skey_proof_srv, _ = server_session.process(other_public=client_public_b64, salt=salt_b64, base64=True)
 
     assert skey_cl == skey_srv
     assert skey_proof_cl == skey_proof_srv
@@ -78,25 +79,26 @@ def test_simple():
     gen = context.generator
 
     # Receive username from client and generate server public.
-    server_session = SRPServerSession(SRPContext(username, prime=prime, generator=gen), password_verifier)
+    server_session = SRPServerSession(
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier)
     server_public = server_session.public
 
     # Receive server public and salt and process them.
     client_session = SRPClientSession(SRPContext(username, 'password123', prime=prime, generator=gen))
-    client_session.process(server_public, salt)
+    client_session.process(other_public=server_public, salt=salt)
     # Generate client public and session key.
     client_public = client_session.public
     client_session_key = client_session.key
 
     # Process client public and compare session keys.
-    server_session.process(client_public, salt)
+    server_session.process(other_public=client_public, salt=salt)
     server_session_key = server_session.key
 
     assert server_session_key == client_session_key
 
 
 def test_raises():
-    server_session = SRPServerSession(SRPContext('1', '2'), '1')
+    server_session = SRPServerSession(SRPContext('1', '2'), password_verifier='1')
     server_session._context._prime = 1  # to trigger error
     with pytest.raises(SRPException):
         server_session.init_common_secret('1')
