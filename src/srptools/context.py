@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
 from random import SystemRandom as random
-
-from six import integer_types, PY3
 
 from .utils import int_from_hex, int_to_bytes, hex_from, value_encode, b64_from
 from .constants import PRIME_1024, PRIME_1024_GEN, HASH_SHA_1
@@ -23,12 +20,12 @@ class SRPContext(object):
             bits_random=1024, bits_salt=64):
         """
 
-        :param str|unicode username: User name
-        :param str|unicode password: User _password
-        :param str|unicode|None prime: Prime hex string . Default: PRIME_1024
-        :param str|unicode|None generator: Generator hex string. Default: PRIME_1024_GEN
-        :param str|unicode hash_func: Function to calculate hash. Default: HASH_SHA_1
-        :param str|unicode multiplier: Multiplier hex string. If not given will be calculated
+        :param str username: User name
+        :param str password: User _password
+        :param str|None prime: Prime hex string . Default: PRIME_1024
+        :param str|None generator: Generator hex string. Default: PRIME_1024_GEN
+        :param str hash_func: Function to calculate hash. Default: HASH_SHA_1
+        :param str multiplier: Multiplier hex string. If not given will be calculated
             automatically using _prime and _gen.
         :param int bits_random: Random value bits. Default: 1024
         :param int bits_salt: Salt value bits. Default: 64
@@ -82,15 +79,12 @@ class SRPContext(object):
         as_bytes = kwargs.get('as_bytes', False)
 
         def conv(arg):
-            if isinstance(arg, integer_types):
+            if isinstance(arg, int):
                 arg = int_to_bytes(arg)
 
-            if PY3:
-                if isinstance(arg, str):
-                    arg = arg.encode('utf-8')
-                return arg
-
-            return str(arg)
+            if isinstance(arg, str):
+                arg = arg.encode('utf-8')
+            return arg
 
         digest = joiner.join(map(conv, args))
 

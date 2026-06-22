@@ -1,6 +1,9 @@
 # srptools changelog
 
 
+### Unreleased
+* !! Drop Python 2 support.
+
 ### v1.0.1 [2020-09-12]
 * !! Dropped QA for Python 2.
 * ** Now context.get_common_password_hash handles inner hashes with leading zeros correctly.

@@ -1,16 +1,15 @@
-from __future__ import unicode_literals
-
 from binascii import unhexlify
+from typing import TYPE_CHECKING
 
 from .utils import hex_from, int_from_hex, hex_from_b64, value_encode, b64_from
 from .exceptions import SRPException
 
 
-if False:  # pragma: no cover
+if TYPE_CHECKING:
     from .context import SRPContext
 
 
-class SRPSessionBase(object):
+class SRPSessionBase:
     """Base session class for server and client."""
 
     role = None
@@ -18,7 +17,7 @@ class SRPSessionBase(object):
     def __init__(self, srp_context, private=None):
         """
         :param SRPContext srp_context:
-        :param str|unicode private:
+        :param str private:
         """
         self._context = srp_context
 

@@ -1,10 +1,9 @@
-from __future__ import division
 from collections import OrderedDict
 
 import click
 
-from srptools import VERSION, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
-from srptools.constants import *
+from . import VERSION, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
+from .constants import *
 
 
 PRESETS = OrderedDict([

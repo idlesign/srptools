@@ -1,9 +1,10 @@
-from __future__ import unicode_literals
+from typing import TYPE_CHECKING
+
 from .common import SRPSessionBase
 from .utils import int_from_hex
 
 
-if False:  # pragma: no cover
+if TYPE_CHECKING:
     from .context import SRPContext
 
 
@@ -14,8 +15,8 @@ class SRPServerSession(SRPSessionBase):
     def __init__(self, srp_context, password_verifier, private=None):
         """
         :param SRPContext srp_context:
-        :param st|unicode password_verifier:
-        :param st|unicode private:
+        :param str password_verifier:
+        :param str private:
         """
         super(SRPServerSession, self).__init__(srp_context, private)
 

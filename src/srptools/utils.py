@@ -1,8 +1,5 @@
-from __future__ import unicode_literals
 from binascii import unhexlify, hexlify
 from base64 import b64encode, b64decode
-
-from six import integer_types
 
 
 def value_encode(val, base64=False):
@@ -22,10 +19,10 @@ def hex_from_b64(val):
 def hex_from(val):
     """Returns hex string representation for a given value.
 
-    :param bytes|str|unicode|int|long val:
+    :param bytes|str|int val:
     :rtype: bytes|str
     """
-    if isinstance(val, integer_types):
+    if isinstance(val, int):
         hex_str = '%x' % val
         if len(hex_str) % 2:
             hex_str = '0' + hex_str
@@ -35,30 +32,30 @@ def hex_from(val):
 
 
 def int_from_hex(hexstr):
-    """Returns int/long representation for a given hex string.
+    """Returns int representation for a given hex string.
 
-    :param bytes|str|unicode hexstr:
-    :rtype: int|long
+    :param bytes|str hexstr:
+    :rtype: int
     """
     return int(hexstr, 16)
 
 
 def int_to_bytes(val):
-    """Returns bytes representation for a given int/long.
+    """Returns bytes representation for a given int.
 
-    :param int|long val:
-    :rtype: bytes|str
+    :param int val:
+    :rtype: bytes
     """
     hex_str = hex_from(val)
     return unhexlify(hex_str)
 
 
 def b64_from(val):
-    """Returns base64 encoded bytes for a given int/long/bytes value.
+    """Returns base64 encoded bytes for a given int/bytes value.
 
-    :param int|long|bytes val:
-    :rtype: bytes|str
+    :param int|bytes val:
+    :rtype: str
     """
-    if isinstance(val, integer_types):
+    if isinstance(val, int):
         val = int_to_bytes(val)
     return b64encode(val).decode('ascii')

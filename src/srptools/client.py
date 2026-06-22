@@ -1,8 +1,9 @@
-from __future__ import unicode_literals
+from typing import TYPE_CHECKING
+
 from .common import SRPSessionBase
 
 
-if False:  # pragma: no cover
+if TYPE_CHECKING:
     from .context import SRPContext
 
 
@@ -13,7 +14,7 @@ class SRPClientSession(SRPSessionBase):
     def __init__(self, srp_context, private=None):
         """
         :param SRPContext srp_context:
-        :param st|unicode private:
+        :param str private:
         """
         super(SRPClientSession, self).__init__(srp_context, private)
 

@@ -10,9 +10,7 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 keywords = ["SRP", "authentication", "security"]
-dependencies = [
-    "six",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/idlesign/srptools"

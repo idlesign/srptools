@@ -14,7 +14,6 @@ You may import it into your applications and use its API or you may use
 
 1. Python 3.10+
 2. `click` package (optional, for CLI)
-3. `six`
 
 ## Get involved into srptools
 
