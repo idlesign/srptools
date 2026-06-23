@@ -48,6 +48,8 @@ jobs:
         if: steps.check.outputs.secret_missing == 'false' # when secret is missing, skip this step
   publish-github:
     needs: build
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
