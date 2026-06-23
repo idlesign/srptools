@@ -30,6 +30,7 @@ jobs:
           --publish-url https://pypi.pkg.github.com \
           --username ${{ github.repository_owner }} \
           --password ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
       - name: check secret
         id: check
         env:
