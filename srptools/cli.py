@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 import click
 
-from srptools import VERSION, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
+from srptools import __version__, SRPContext, SRPServerSession, SRPClientSession, hex_from_b64
 from srptools.constants import *
 
 
@@ -18,7 +18,7 @@ PRESETS = OrderedDict([
 
 
 @click.group()
-@click.version_option(version='.'.join(map(str, VERSION)))
+@click.version_option(version=__version__)
 def base():
     """srptools command line utility.
 

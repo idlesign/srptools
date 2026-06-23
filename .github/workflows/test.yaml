@@ -2,6 +2,12 @@ name: Continuous Integration
 
 on:
     push:
+    pull_request:
+      types:
+        - opened
+        - reopened
+        - ready_for_review
+        - synchronize
 
 jobs:
   checks:
@@ -22,12 +28,13 @@ jobs:
     runs-on:  ${{ matrix.os }}
     name: ${{ matrix.python-version }} on ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
-      - run: pip install setuptools pytest six
-      - run: python setup.py install
-      - run: pytest
+          activate-environment: true
+      - name: Sync dependencies
+        run: uv sync --extra tests
+      - name: Run tests
+        run: uv run pytest

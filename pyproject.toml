@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "srptools"
+dynamic = ["version"]
+description = "Tools to implement Secure Remote Password (SRP) authentication"
+readme = "README.rst"
+license = "BSD-3-Clause"
+license-files = ["LICENSE", "AUTHORS"]
+requires-python = ">=2.7"
+dependencies = ["six"]
+
+authors = [
+  { name = 'Igor `idle sign` Starikov', email = 'idlesign@yandex.ru' },
+]
+
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 2",
+  "Programming Language :: Python :: 2.7",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+]
+
+[project.optional-dependencies]
+cli = ["click>=2.0"]
+tests = ["pytest"]
+
+[project.scripts]
+srptools = "srptools.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["srptools*"]
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"

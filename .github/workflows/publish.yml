@@ -1,0 +1,62 @@
+name: publish.yml
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+      - run: uv sync
+      - name: Build
+        run: uv build
+      - name: share to artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist
+          name: 'artifact'
+      - name: upload to github registry
+        run: uv publish dist/*.tar.gz dist/*.whl \
+          --publish-url https://pypi.pkg.github.com \
+          --username ${{ github.repository_owner }} \
+          --password ${{ secrets.GITHUB_TOKEN }}
+      - name: check secret
+        id: check
+        env:
+          TARGET_SECRET: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          if [ -z "$TARGET_SECRET" ]; then
+            echo "secret_missing=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "secret_missing=false" >> $GITHUB_OUTPUT
+          fi
+      - name: upload to pypi
+        run: uv publish \
+          --username __token__ \
+          --password ${{ secrets.PYPI_API_TOKEN }}
+        if: steps.check.outputs.secret_missing == 'false' # when secret is missing, skip this step
+  publish-github:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: ./
+          name: 'artifact'
+      - name: release to GitHub
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            ./*.whl
+            ./*.tar.gz
