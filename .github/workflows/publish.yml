@@ -42,7 +42,7 @@ jobs:
             echo "secret_missing=false" >> $GITHUB_OUTPUT
           fi
       - name: upload to pypi
-        run: uv publish \
+        run: uv publish dist/*.tar.gz dist/*.whl \
           --username __token__ \
           --password ${{ secrets.PYPI_API_TOKEN }}
         if: steps.check.outputs.secret_missing == 'false' # when secret is missing, skip this step
