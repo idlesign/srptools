@@ -38,7 +38,6 @@ jobs:
         run: |
           if [ -z "$TARGET_SECRET" ]; then
             echo "secret_missing=true" >> $GITHUB_OUTPUT
-            exit 1
           else
             echo "secret_missing=false" >> $GITHUB_OUTPUT
           fi
