@@ -27,7 +27,7 @@ jobs:
           name: 'artifact'
       - name: upload to github registry
         run: uv publish dist/*.tar.gz dist/*.whl \
-          --publish-url https://pypi.pkg.github.com \
+          --publish-url https://pypi.pkg.github.com/${{ github.repository_owner }}/ \
           --username ${{ github.repository_owner }} \
           --password ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
