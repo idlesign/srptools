@@ -184,8 +184,8 @@ class SRPContext:
             h(self._prime) ^ h(self._gen),
             h(self._user),
             salt,
-            client_public,
-            server_public,
+            self.pad(client_public),
+            self.pad(server_public),
             session_key,
             as_bytes=True
         )
