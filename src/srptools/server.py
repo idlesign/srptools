@@ -11,10 +11,15 @@ if TYPE_CHECKING:
 
 
 class SRPServerSession(SRPSessionBase):
-
     role = 'server'
 
-    def __init__(self, srp_context: SRPContext, *, password_verifier: str | int | bytes, private: str | int | bytes = ''):
+    def __init__(
+        self,
+        srp_context: SRPContext,
+        *,
+        password_verifier: str | int | bytes,
+        private: str | int | bytes = '',
+    ):
         super().__init__(srp_context, private)
 
         if isinstance(password_verifier, int):
@@ -28,8 +33,7 @@ class SRPServerSession(SRPSessionBase):
             self._this_private = srp_context.generate_server_private()
 
         self._server_public = srp_context.get_server_public(
-            password_verifier=self._password_verifier,
-            server_private=self._this_private
+            password_verifier=self._password_verifier, server_private=self._this_private
         )
 
     def init_session_key(self) -> None:
@@ -39,7 +43,7 @@ class SRPServerSession(SRPSessionBase):
             password_verifier=self._password_verifier,
             server_private=self._this_private,
             client_public=self._client_public,
-            common_secret=self._common_secret
+            common_secret=self._common_secret,
         )
 
         self._key = self._context.get_common_session_key(premaster_secret)

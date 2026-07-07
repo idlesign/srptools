@@ -42,7 +42,7 @@ class SRPSessionBase:
         return getattr(self, f'_{self.role}_public')
 
     def _other_public(self, val: int) -> None:
-        other = ('server' if self.role == 'client' else 'client')
+        other = 'server' if self.role == 'client' else 'client'
         setattr(self, f'_{other}_public', val)
 
     _other_public = property(None, _other_public)
@@ -125,7 +125,9 @@ class SRPSessionBase:
     ) -> tuple[str, str, str]:
         if base64 and (isinstance(other_public, bytes) or isinstance(salt, bytes)):
             raise SRPException(
-                'Cannot decode base64 from bytes. If the value is bytes, it is already decoded and should not be treated as base64.')
+                'Cannot decode base64 from bytes. '
+                'If the value is bytes, it is already decoded and should not be treated as base64.'
+            )
         salt = self._value_decode(salt, base64=base64)
         other_public = self._value_decode(other_public, base64=base64)
 
@@ -162,7 +164,8 @@ class SRPSessionBase:
                 other_public = int(other_public, 16)
             except (ValueError, TypeError) as e:
                 raise SRPException(
-                    'Wrong public provided for %s: cannot decode value: %s' % (self.__class__.__name__, e))
+                    f'Wrong public provided for {self.__class__.__name__}: cannot decode value: {e}',
+                ) from e
 
         if other_public % self._context._prime == 0:  # A % N is zero | B % N is zero
             raise SRPException(f'Wrong public provided for {self.__class__.__name__}.')
@@ -173,16 +176,11 @@ class SRPSessionBase:
 
     def init_session_key_proof(self) -> None:
         proof = self._context.get_common_session_key_proof(
-            session_key=self._key,
-            salt=self._salt,
-            server_public=self._server_public,
-            client_public=self._client_public
+            session_key=self._key, salt=self._salt, server_public=self._server_public, client_public=self._client_public
         )
 
         self._key_proof = proof
 
         self._key_proof_hash = self._context.get_common_session_key_proof_hash(
-            session_key=self._key,
-            session_key_proof=proof,
-            client_public=self._client_public
+            session_key=self._key, session_key_proof=proof, client_public=self._client_public
         )
