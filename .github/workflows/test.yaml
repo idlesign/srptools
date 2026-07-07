@@ -35,6 +35,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
       - name: Sync dependencies
-        run: uv sync --extra tests
+        run: uv sync --group tests
       - name: Run tests
         run: uv run pytest
