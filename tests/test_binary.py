@@ -18,7 +18,7 @@ def test_full_handshake_binary():
 
     # Server accepts bytes verifier.
     server_session = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), verifier_bin)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=verifier_bin)
     server_public_bin = server_session.public_bin
 
     # Client processes bytes public + bytes salt.
@@ -46,7 +46,7 @@ def test_verify_proof_binary():
     verifier_bin = unhexlify(password_verifier)
 
     server_session = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), verifier_bin)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=verifier_bin)
     client_session = SRPClientSession(
         SRPContext(username, 'password123', prime=prime, generator=gen))
 
@@ -68,11 +68,11 @@ def test_session_restore_via_bytes_private():
     verifier_bin = unhexlify(password_verifier)
 
     original_server = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), password_verifier)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier)
     server_private_bin = original_server.private_bin
 
     restored_server = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), verifier_bin,
+        SRPContext(username, prime=prime, generator=gen), password_verifier=verifier_bin,
         private=server_private_bin)
     assert restored_server.public_bin == original_server.public_bin
 
@@ -96,7 +96,7 @@ def test_server_accepts_int_verifier():
     verifier_int = int_from_hex(password_verifier)
 
     server_session = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), verifier_int)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=verifier_int)
     assert server_session.public_bin
 
 
@@ -130,7 +130,7 @@ def test_process_bytes_base64_mutual_exclusion():
 
     salt_bin = unhexlify(salt)
     server_session = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), password_verifier)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier)
     client_session = SRPClientSession(
         SRPContext(username, 'password123', prime=prime, generator=gen))
 
@@ -141,7 +141,7 @@ def test_process_bytes_base64_mutual_exclusion():
 def test_init_common_secret_rejects_garbage_str():
     """init_common_secret raises SRPException on non-hex str."""
     context = SRPContext('alice', 'password123')
-    server_session = SRPServerSession(context, '1')
+    server_session = SRPServerSession(context, password_verifier='1')
     with pytest.raises(SRPException):
         server_session.init_common_secret('not-hex-at-all')
 
@@ -159,7 +159,7 @@ def test_binary_path_matches_hex_path():
 
     # Hex path: capture privates to reuse in binary path.
     server_hex = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), password_verifier)
+        SRPContext(username, prime=prime, generator=gen), password_verifier=password_verifier)
     server_private_bin = server_hex.private_bin
 
     client_hex = SRPClientSession(
@@ -172,7 +172,7 @@ def test_binary_path_matches_hex_path():
 
     # Binary path: restore sessions with the same privates, feed bytes.
     server_bin = SRPServerSession(
-        SRPContext(username, prime=prime, generator=gen), verifier_bin,
+        SRPContext(username, prime=prime, generator=gen), password_verifier=verifier_bin,
         private=server_private_bin)
     client_bin = SRPClientSession(
         SRPContext(username, 'password123', prime=prime, generator=gen),

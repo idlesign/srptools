@@ -14,7 +14,7 @@ class SRPServerSession(SRPSessionBase):
 
     role = 'server'
 
-    def __init__(self, srp_context: SRPContext, password_verifier: str | int | bytes, *, private: str | int | bytes = ''):
+    def __init__(self, srp_context: SRPContext, *, password_verifier: str | int | bytes, private: str | int | bytes = ''):
         super().__init__(srp_context, private)
 
         if isinstance(password_verifier, int):
