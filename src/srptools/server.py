@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from secrets import compare_digest
 from typing import TYPE_CHECKING
 
 from .common import SRPSessionBase
@@ -47,6 +48,6 @@ class SRPServerSession(SRPSessionBase):
         super().verify_proof(key_proof)
 
         if isinstance(key_proof, bytes):
-            return key_proof == self._key_proof
+            return compare_digest(key_proof, self._key_proof)
 
         return self._value_decode(key_proof, base64=base64) == self.key_proof
