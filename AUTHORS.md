@@ -7,3 +7,4 @@ Created by Igor `idle sign` Starikov.
 
 * Bouke Haarsma <https://github.com/Bouke>
 * Michael Zimmermann <https://github.com/M1cha>
+* 敖律风 <https://github.com/Mr-Ao-Dragon>
