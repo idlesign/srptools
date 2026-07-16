@@ -6,9 +6,16 @@ def value_encode(val: int | bytes, *, base64: bool = False) -> str:
     return b64_from(val) if base64 else hex_from(val)
 
 
-def hex_from_b64(val: str) -> str:
+def hex_from_b64(val: str | bytes) -> str:
     """Returns hex string representation for a base64 encoded value."""
+    if isinstance(val, bytes):
+        val = val.decode('ascii')
     return b64decode(val).hex()
+
+
+def int_from_bytes(val: bytes) -> int:
+    """Returns int representation for a given bytes value (big-endian)."""
+    return int.from_bytes(val, 'big')
 
 
 def hex_from(val: int | bytes) -> str:

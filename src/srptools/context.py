@@ -201,10 +201,29 @@ class SRPContext:
         """H(A | M | K)"""
         return self.hash(client_public, session_key_proof, session_key, as_bytes=True)
 
-    def get_user_data_triplet(self, *, base64: bool = False) -> tuple[str, str, str]:
-        """( <_user>, <_password verifier>, <salt> )"""
+    def get_user_data_triplet(
+        self,
+        *,
+        base64: bool = False,
+        binary: bool = False,
+    ) -> tuple[str, str | bytes, str | bytes]:
+        """( <_user>, <_password verifier>, <salt> )
+
+        :param bool base64: Output verifier and salt as base64 strings.
+        :param bool binary: Output verifier and salt as raw bytes. Verifier
+            is prime-width (padded), salt is bits_salt-width (padded).
+            Mutually exclusive with ``base64``.
+        :raises SRPException: if both ``base64`` and ``binary`` are True.
+        """
+        if binary and base64:
+            raise SRPException('binary and base64 are mutually exclusive')
+
         salt = self.generate_salt()
         verifier = self.get_common_password_verifier(self.get_common_password_hash(salt))
+
+        if binary:
+            salt_bytes = int_to_bytes(salt).rjust(self._bits_salt // 8, b'\x00')
+            return self._user, self.pad(verifier), salt_bytes
 
         verifier = value_encode(verifier, base64=base64)
         salt = value_encode(salt, base64=base64)
