@@ -41,9 +41,11 @@ class SRPClientSession(SRPSessionBase):
         self._key = self._context.get_common_session_key(premaster_secret)
 
     def verify_proof(self, key_proof: str | bytes, *, base64: bool = False) -> bool:
+        """Verify the server's proof using a timing-resistant comparison."""
         super().verify_proof(key_proof)
 
         if isinstance(key_proof, bytes):
             return compare_digest(key_proof, self._key_proof_hash)
 
-        return self._value_decode(key_proof, base64=base64) == self.key_proof_hash
+        decoded_proof = self._value_decode(key_proof, base64=base64)
+        return decoded_proof.isascii() and compare_digest(decoded_proof, self.key_proof_hash)

@@ -1,9 +1,12 @@
 from binascii import unhexlify
+from collections.abc import Callable
+from typing import Any
 
 import pytest
 
 from srptools import SRPClientSession, SRPContext, SRPException, SRPServerSession
-from srptools.utils import int_from_hex
+from srptools.constants import HASH_SHA_1, HASH_SHA_256
+from srptools.utils import hex_from_b64, int_from_hex, value_encode
 
 
 def test_full_handshake_binary():
@@ -94,19 +97,95 @@ def test_server_accepts_int_verifier():
     assert server_session.public_bin
 
 
-def test_get_user_data_triplet_binary():
-    """get_user_data_triplet(binary=True) emits bytes verifier and salt."""
-    context = SRPContext('alice', 'password123', bits_salt=64)
+@pytest.mark.parametrize("salt_value", [
+    pytest.param(0, id="zero"),
+    pytest.param(0x0000A1B2C3D4E5F6, id="two-leading-zeros"),
+    pytest.param(0x00A1B2C3D4E5F607, id="one-leading-zero"),
+    pytest.param(0xA1B2C3D4E5F60708, id="no-leading-zeros"),
+])
+@pytest.mark.parametrize("hash_func", [HASH_SHA_1, HASH_SHA_256])
+def test_get_user_data_triplet_binary(
+    monkeypatch: pytest.MonkeyPatch, salt_value: int, hash_func: Callable[..., Any],
+) -> None:
+    """The verifier must use the exact salt bytes returned to the client."""
+    context = SRPContext("alice", "password123", bits_salt=64, hash_func=hash_func)
+    monkeypatch.setattr(context, "generate_salt", lambda: salt_value)
 
     username, verifier, salt = context.get_user_data_triplet(binary=True)
 
-    assert username == 'alice'
+    assert username == "alice"
     assert isinstance(verifier, bytes)
     assert isinstance(salt, bytes)
     # Salt is bits_salt-width (64 bits = 8 bytes).
     assert len(salt) == 8
+    assert salt == salt_value.to_bytes(8, "big")
     # Verifier is prime-width (1024-bit prime = 128 bytes).
     assert len(verifier) == 128
+
+    password_hash = hash_func(salt + hash_func(b"alice:password123").digest()).digest()
+    expected_verifier = pow(int(context.generator, 16), int.from_bytes(password_hash, "big"), int(context.prime, 16))
+    assert int.from_bytes(verifier, "big") == expected_verifier
+
+    server_session = SRPServerSession(SRPContext(username, hash_func=hash_func), password_verifier=verifier)
+    client_session = SRPClientSession(SRPContext(username, "password123", hash_func=hash_func))
+    client_session.process(server_session.public_bin, salt)
+    server_session.process(client_session.public_bin, salt)
+
+    assert client_session.key_bin == server_session.key_bin
+    assert server_session.verify_proof(client_session.key_proof_bin)
+    assert client_session.verify_proof(server_session.key_proof_hash_bin)
+
+    client_proof = client_session.key_proof_bin
+    server_proof = server_session.key_proof_hash_bin
+    assert not server_session.verify_proof(bytes([client_proof[0] ^ 1]) + client_proof[1:])
+    assert not client_session.verify_proof(bytes([server_proof[0] ^ 1]) + server_proof[1:])
+
+
+@pytest.mark.parametrize("base64", [False, True])
+def test_get_user_data_triplet_preserves_legacy_salt(monkeypatch: pytest.MonkeyPatch, *, base64: bool) -> None:
+    context = SRPContext("alice", "password123")
+    monkeypatch.setattr(context, "generate_salt", lambda: 0x00A1B2C3D4E5F607)
+
+    _, verifier, salt = context.get_user_data_triplet(base64=base64)
+
+    if base64:
+        verifier, salt = hex_from_b64(verifier), hex_from_b64(salt)
+
+    assert salt == "a1b2c3d4e5f607"
+    password_hash = context.get_common_password_hash(unhexlify(salt))
+    assert int_from_hex(verifier) == context.get_common_password_verifier(password_hash)
+
+
+@pytest.mark.parametrize("base64", [False, True])
+def test_binary_triplet_encoded_handshake(monkeypatch: pytest.MonkeyPatch, *, base64: bool) -> None:
+    context = SRPContext("alice", "password123")
+    monkeypatch.setattr(context, "generate_salt", lambda: 0x00A1B2C3D4E5F607)
+    username, verifier, salt = context.get_user_data_triplet(binary=True)
+
+    server_session = SRPServerSession(SRPContext(username), password_verifier=verifier)
+    client_session = SRPClientSession(SRPContext(username, "password123"))
+    salt_encoded = value_encode(salt, base64=base64)
+    client_session.process(value_encode(server_session.public_bin, base64=base64), salt_encoded, base64=base64)
+    server_session.process(value_encode(client_session.public_bin, base64=base64), salt_encoded, base64=base64)
+
+    assert client_session.key_bin == server_session.key_bin
+    assert server_session.verify_proof(value_encode(client_session.key_proof_bin, base64=base64), base64=base64)
+    assert client_session.verify_proof(value_encode(server_session.key_proof_hash_bin, base64=base64), base64=base64)
+
+
+def test_binary_triplet_rejects_wrong_password(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = SRPContext("alice", "password123")
+    monkeypatch.setattr(context, "generate_salt", lambda: 0x00A1B2C3D4E5F607)
+    username, verifier, salt = context.get_user_data_triplet(binary=True)
+
+    server_session = SRPServerSession(SRPContext(username), password_verifier=verifier)
+    client_session = SRPClientSession(SRPContext(username, "wrong-password"))
+    client_session.process(server_session.public_bin, salt)
+    server_session.process(client_session.public_bin, salt)
+
+    assert client_session.key_bin != server_session.key_bin
+    assert not server_session.verify_proof(client_session.key_proof_bin)
+    assert not client_session.verify_proof(server_session.key_proof_hash_bin)
 
 
 def test_get_user_data_triplet_binary_mutual_exclusion():

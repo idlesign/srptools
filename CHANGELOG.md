@@ -4,6 +4,11 @@
 ### Unreleased
 * !! Drop Python 2 support.
 * !! Massive refactor for Python 3.10+.
+* ** Add hidden CLI secret input and warn about sensitive arguments and diagnostic output (#13).
+* ** Correct mutual-authentication examples and keep checks active under Python optimization (#13).
+* ** Derive binary verifiers from the exact returned salt bytes (#13).
+* ** Fix CLI callbacks, registration presets and help command names (#13).
+* ** Use timing-resistant comparison for hex and Base64 session proofs (#13).
 
 ### v1.0.1 [2020-09-12]
 * !! Dropped QA for Python 2.
