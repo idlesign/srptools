@@ -9,4 +9,5 @@ __pycache__
 docs/_build/
 *.lock
 .venv
+.venv_ma
 build

@@ -212,18 +212,24 @@ class SRPContext:
         :param bool base64: Output verifier and salt as base64 strings.
         :param bool binary: Output verifier and salt as raw bytes. Verifier
             is prime-width (padded), salt is bits_salt-width (padded).
+            The verifier is derived from these padded salt bytes.
             Mutually exclusive with ``base64``.
         :raises SRPException: if both ``base64`` and ``binary`` are True.
         """
-        if binary and base64:
-            raise SRPException('binary and base64 are mutually exclusive')
 
-        salt = self.generate_salt()
+        if binary and base64:
+            raise SRPException("binary and base64 are mutually exclusive")
+
+        salt: Salt = self.generate_salt()
+
+        if binary:
+            # Hash the exact salt bytes returned to clients, including leading zeros.
+            salt = int_to_bytes(salt).rjust(self._bits_salt // 8, b"\x00")
+
         verifier = self.get_common_password_verifier(self.get_common_password_hash(salt))
 
         if binary:
-            salt_bytes = int_to_bytes(salt).rjust(self._bits_salt // 8, b'\x00')
-            return self._user, self.pad(verifier), salt_bytes
+            return self._user, self.pad(verifier), salt
 
         verifier = value_encode(verifier, base64=base64)
         salt = value_encode(salt, base64=base64)

@@ -34,12 +34,13 @@ linters = [
     "ruff==0.13.1",
 ]
 tests = [
+    "click>=4.0",
     "pytest",
 ]
 
 [project.optional-dependencies]
 cli = [
-    "click>=2.0",
+    "click>=4.0",
 ]
 
 [build-system]

@@ -1,7 +1,12 @@
+from collections.abc import Callable
+from secrets import compare_digest
+from typing import Any
+
 import pytest
 
 from srptools import SRPClientSession, SRPContext, SRPException, SRPServerSession
-from srptools.utils import int_from_hex, value_encode
+from srptools.constants import HASH_SHA_1, HASH_SHA_256
+from srptools.utils import b64_from, int_from_hex, value_encode
 
 
 def test_extended():
@@ -40,7 +45,7 @@ def test_extended():
     server_session.process(other_public=client_public, salt=salt)
     assert server_session.verify_proof(client_session_key_proof)
     # Generate session key proof hash.
-    server_session_key_proof_hash = client_session.key_proof_hash
+    server_session_key_proof_hash = server_session.key_proof_hash
 
     # Verify session key proff hash received from server.
     assert client_session.verify_proof(server_session_key_proof_hash)
@@ -107,3 +112,57 @@ def test_raises():
     client_session._context._prime = 1  # to trigger error
     with pytest.raises(SRPException):
         client_session.init_common_secret('1')
+
+
+@pytest.mark.parametrize(("encode_proof", "use_base64"), [
+    pytest.param(bytes, False, id="binary"),
+    pytest.param(bytes.hex, False, id="hex"),
+    pytest.param(b64_from, True, id="base64"),
+])
+@pytest.mark.parametrize("hash_func", [HASH_SHA_1, HASH_SHA_256])
+def test_verify_proof_uses_timing_resistant_comparison(
+    monkeypatch: pytest.MonkeyPatch,
+    encode_proof: Callable[[bytes], str | bytes],
+    hash_func: Callable[..., Any],
+    *,
+    use_base64: bool,
+) -> None:
+    context = SRPContext("alice", "password123", hash_func=hash_func)
+    username, verifier, salt = context.get_user_data_triplet()
+    server_session = SRPServerSession(SRPContext(username, hash_func=hash_func), password_verifier=verifier)
+    client_session = SRPClientSession(context)
+    client_session.process(server_session.public, salt)
+    server_session.process(client_session.public, salt)
+    comparisons = []
+
+    def compare_proofs(received: str | bytes, expected: str | bytes) -> bool:
+        comparisons.append((received, expected))
+        return compare_digest(received, expected)
+
+    monkeypatch.setattr("srptools.client.compare_digest", compare_proofs)
+    monkeypatch.setattr("srptools.server.compare_digest", compare_proofs)
+
+    for session, proof in (
+        (server_session, client_session.key_proof_bin),
+        (client_session, server_session.key_proof_hash_bin),
+    ):
+        encoded_proof = encode_proof(proof)
+        assert session.verify_proof(encoded_proof, base64=use_base64)
+        expected = proof if isinstance(encoded_proof, bytes) else proof.hex()
+        assert comparisons.pop() == (expected, expected)
+
+        for invalid_proof in (
+            bytes([proof[0] ^ 1]) + proof[1:],
+            proof[:-1] + bytes([proof[-1] ^ 1]),
+            proof[:-1],
+            proof + b"\x00",
+            b"",
+        ):
+            assert not session.verify_proof(encode_proof(invalid_proof), base64=use_base64)
+            assert len(comparisons) == 1
+            comparisons.clear()
+
+        assert not session.verify_proof("not-a-proof")
+        assert not session.verify_proof("\N{SNOWMAN}")
+        assert not session.verify_proof("\ud800")
+        comparisons.clear()
