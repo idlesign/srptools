@@ -1,7 +1,7 @@
 # srptools changelog
 
 
-### Unreleased
+### v2.0.0 [2026-10-26]
 * !! Drop Python 2 support.
 * !! Massive refactor for Python 3.10+.
 * ** Add hidden CLI secret input and warn about sensitive arguments and diagnostic output (#13).
